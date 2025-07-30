@@ -55,6 +55,7 @@
         rust_analyzer.enable = true;
         gopls.enable = true;
         ccls.enable = true;
+        nimls.enable = true;
       };
     };
 
