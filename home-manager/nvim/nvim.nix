@@ -14,7 +14,7 @@
   programs.nixvim = {
     enable = true;
 
-    defaultEditor = true;
+    defaultEditor = lib.mkForce true;
     viAlias = true;
     vimAlias = true;
 
