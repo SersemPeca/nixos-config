@@ -16,6 +16,10 @@
     ./hyprland/hyprland.nix
   ];
 
+  home.sessionVariables = lib.mkForce {
+    EDITOR = "nvim";
+  };
+
   home.shell.enableFishIntegration = true;
 
   fonts.fontconfig.enable = true;
