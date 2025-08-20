@@ -5,7 +5,6 @@
   ...
 }:
 {
-
   imports = [
     ./which-key.nix
     ./nvim-cmp.nix
@@ -52,6 +51,18 @@
         };
       };
     };
+
+    extraPlugins = [
+      (pkgs.vimUtils.buildVimPlugin {
+        name = "nim.vim";
+        src = pkgs.fetchFromGitHub {
+          owner = "zah";
+          repo = "nim.vim";
+          rev = "a15714fea392b0f06ff2b282921a68c7033e39a2";
+          hash = "sha256-ZIDvVto6c9PXtE8O0vp1fL6fuDJrUrYZ0zIXtJBTw+0=";
+        };
+      })
+    ];
 
     lsp = {
       servers = {
