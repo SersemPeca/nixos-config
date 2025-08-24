@@ -25,7 +25,7 @@
 
     clipboard = {
       register = "unnamedplus";
-      providers.xclip.enable = true;
+      # providers.xclip.enable = true;
     };
 
     plugins = {
@@ -51,6 +51,10 @@
         };
       };
     };
+
+    extraPackages = with pkgs; [
+      wl-clipboard
+    ];
 
     extraPlugins = [
       (pkgs.vimUtils.buildVimPlugin {
