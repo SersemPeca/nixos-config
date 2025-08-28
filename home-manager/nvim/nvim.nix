@@ -116,6 +116,20 @@
 
       {
         mode = "n";
+        key = "gr";
+        action = "vim.lsp.buf.references";
+        lua = true;
+      }
+
+      {
+        mode = "n";
+        key = "gi";
+        action = "vim.lsp.buf.implementation";
+        lua = true;
+      }
+
+      {
+        mode = "n";
         key = "K";
         action = "vim.lsp.buf.hover";
         lua = true;
