@@ -50,6 +50,10 @@
           highlight.enable = true;
         };
       };
+
+      rustaceanvim = {
+        enable = true;
+      };
     };
 
     extraPackages = with pkgs; [
@@ -71,7 +75,7 @@
     lsp = {
       servers = {
         nil_ls.enable = true;
-        rust_analyzer.enable = true;
+        # rust_analyzer.enable = true;
         gopls.enable = true;
         ccls.enable = true;
         nimls.enable = true;
@@ -164,10 +168,27 @@
       }
 
       {
+        mode = "t";
+        key = "<Esc><Esc>";
+        action = "<C-\\><C-n>";
+      }
+
+      {
+        mode = "n";
+        key = "<leader>rtw";
+        action = ":RustAnalyzer config { cargo = { target = \" wasm32-unknown-unknown \" } }<CR>";
+      }
+
+      {
+        mode = "n";
+        key = "<leader>rtn";
+        action = ":RustAnalyzer config { cargo = { target = \" x86_64-linux-gnu-unknown \" } }<CR>";
+      }
+
+      {
         mode = "n";
         key = "<leader>/";
         action = ":ToggleTerm<CR>";
-        lua = true;
       }
     ];
 
