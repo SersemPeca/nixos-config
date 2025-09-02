@@ -162,6 +162,13 @@
         action = "vim.diagnostic.goto_next";
         lua = true;
       }
+
+      {
+        mode = "n";
+        key = "<leader>/";
+        action = ":ToggleTerm<CR>";
+        lua = true;
+      }
     ];
 
     opts = {
