@@ -1,8 +1,6 @@
 {
-  config,
   pkgs,
   lib,
-  nixvim,
   ...
 }:
 
@@ -35,7 +33,7 @@
 
   fonts.fontconfig.enable = true;
 
-  home.packages = with pkgs; [
+  home.packages = [
     # home-manager
 
     pkgs.nerd-fonts.fira-code
