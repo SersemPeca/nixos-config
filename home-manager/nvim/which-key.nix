@@ -1,6 +1,4 @@
-{
-  ...
-}:
+_:
 
 {
   programs.nixvim.plugins.which-key = {
