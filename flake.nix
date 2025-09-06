@@ -32,7 +32,26 @@
         inherit system;
         allowUnfree = true;
       };
+
       hm = home-manager.lib;
+
+      generateHomeManagerConfig =
+        user:
+        hm.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [
+            ./home-manager/home.nix
+            nixvim.homeManagerModules.nixvim # provides `programs.nixvim.*`
+
+            {
+              home.username = user;
+              home.homeDirectory = "/home/${user}";
+            }
+
+          ];
+
+          extraSpecialArgs = { inherit nixvim; };
+        };
     in
     {
       nixosConfigurations = {
@@ -49,14 +68,11 @@
 
         };
 
-        homeConfigurations.petara = hm.homeManagerConfiguration {
-          inherit pkgs;
-          modules = [ ./home-manager/home.nix ];
-          homeDirectory = "/home/petara";
-          username = "petara";
-
-          extraSpecialArgs = { inherit nixvim; };
-        };
       };
+
+      homeConfigurations.petara = generateHomeManagerConfig "petara";
+
+      homeConfigurations.pesho = generateHomeManagerConfig "pesho";
+
     };
 }

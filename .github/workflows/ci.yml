@@ -20,10 +20,10 @@ jobs:
     - name: Run nixfmt
       run: nix run nixpkgs#nixfmt-rfc-style -- --check .
 
-    - name: Run statix linter
-      run: nix run nixpkgs#statix check
-
     - name: Dead code dection
       run: nix run nixpkgs#deadnix -- --fail .
+
+    - name: Run statix linter
+      run: nix run nixpkgs#statix check
 
     # TODO: Add flake checker
