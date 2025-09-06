@@ -23,40 +23,46 @@
     wezterm.enable = false;
   };
 
-  home.stateVersion = "24.11";
+  home = {
 
-  home.sessionVariables = lib.mkForce {
-    EDITOR = "nvim";
+    stateVersion = "24.11";
+    sessionVariables = lib.mkForce {
+      EDITOR = "nvim";
+    };
+
+    shell.enableFishIntegration = true;
+
+    home.packages = [
+      # home-manager
+
+      pkgs.nerd-fonts.fira-code
+    ];
+
   };
-
-  home.shell.enableFishIntegration = true;
 
   fonts.fontconfig.enable = true;
 
-  home.packages = [
-    # home-manager
+  programs = {
 
-    pkgs.nerd-fonts.fira-code
-  ];
+    home-manager.enable = true;
 
-  programs.home-manager.enable = true;
+    wofi = {
+      enable = true;
+    };
 
-  programs.wofi = {
-    enable = true;
-  };
+    ssh = {
+      enable = true;
+    };
 
-  programs.ssh = {
-    enable = true;
-  };
+    firefox = {
+      enable = true;
+    };
 
-  programs.firefox = {
-    enable = true;
-  };
-
-  programs.git = {
-    enable = true;
-    userName = "SersemPeca";
-    userEmail = "p.atanasov21@abv.bg";
+    git = {
+      enable = true;
+      userName = "SersemPeca";
+      userEmail = "p.atanasov21@abv.bg";
+    };
   };
 
 }

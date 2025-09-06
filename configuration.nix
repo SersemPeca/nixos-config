@@ -83,13 +83,16 @@
     ];
     packages = [ ];
   };
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.users.petara = {
-    imports = [
-      nixvim.homeManagerModules.nixvim
-      ./home-manager/home.nix
-    ];
+
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    users.petara = {
+      imports = [
+        nixvim.homeManagerModules.nixvim
+        ./home-manager/home.nix
+      ];
+    };
   };
 
   # Allow unfree packages
