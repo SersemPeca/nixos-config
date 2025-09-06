@@ -11,7 +11,7 @@
   };
 
   config = {
-    programs.fish = {
+    programs.fish = lib.mkIf config.custom.fish.enable {
       enable = true;
     };
   };

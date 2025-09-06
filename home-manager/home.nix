@@ -7,14 +7,25 @@
 }:
 
 {
-  home.stateVersion = "24.11";
 
   imports = [
     ./nvim/nvim.nix
     ./wezterm/wezterm.nix
     ./waybar/waybar.nix
     ./hyprland/hyprland.nix
+    ./dunst/dunst.nix
+    ./fish/fish.nix
   ];
+
+  custom = {
+    hyprland.enable = false;
+    waybar.enable = false;
+    dunst.enable = false;
+    fish.enable = false;
+    wezterm.enable = false;
+  };
+
+  home.stateVersion = "24.11";
 
   home.sessionVariables = lib.mkForce {
     EDITOR = "nvim";
@@ -25,16 +36,12 @@
   fonts.fontconfig.enable = true;
 
   home.packages = with pkgs; [
-    home-manager
+    # home-manager
 
     pkgs.nerd-fonts.fira-code
   ];
 
   programs.home-manager.enable = true;
-
-  programs.fish = {
-    enable = true;
-  };
 
   programs.wofi = {
     enable = true;
@@ -52,10 +59,6 @@
     enable = true;
     userName = "SersemPeca";
     userEmail = "p.atanasov21@abv.bg";
-  };
-
-  services.dunst = {
-    enable = true;
   };
 
 }
