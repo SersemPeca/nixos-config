@@ -32,7 +32,7 @@
 
     shell.enableFishIntegration = true;
 
-    home.packages = [
+    packages = [
       # home-manager
 
       pkgs.nerd-fonts.fira-code
