@@ -29,4 +29,5 @@ jobs:
     - name: Build config
       run: nix build .#nixosConfigurations.nixos.config.system.build.toplevel
 
-    # TODO: Add flake checker
+    - name: Build home-manager
+      run: nix run nixpkgs#home-manager -- switch --flake .#pesho
