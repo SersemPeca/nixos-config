@@ -57,6 +57,7 @@
 
     extraPackages = with pkgs; [
       wl-clipboard
+      ripgrep
     ];
 
     extraPlugins = [
