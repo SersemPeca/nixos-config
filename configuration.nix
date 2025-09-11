@@ -70,6 +70,13 @@
     displayManager.sddm.enable = true;
     displayManager.sddm.wayland.enable = true;
   };
+
+  nix.gc = {
+    automatic = true;
+    dates = "daily";
+    options = "--delete-older-than 5d";
+  };
+
   #services.dbus.enable = true;
   #services.logind.enable = true;
 
