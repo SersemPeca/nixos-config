@@ -14,65 +14,153 @@ local function features_list()
   return out
 end
 
--- Build rust-analyzer settings from state and apply
-local function apply_ra()
-  -- Build feature list from your RA_STATE
-  local feats = features_list()
+-- one-line Lua literal (no newlines/indent), not JSON
+local function to_oneline_lua(tbl)
+  return vim.inspect(tbl, { newline = "", indent = "" })
+end
 
-  -- Build the settings we want to apply
-  local new_settings = {
-    ["rust-analyzer"] = {
-      cargo = {
-        target = RA_STATE.target,
-        noDefaultFeatures = RA_STATE.no_default,
-        features = feats,
-        buildScripts = { enable = true },
-      },
-      check = {
-        command = "clippy", -- or "check"
-        extraArgs = (function()
-          local extra = {}
-          if RA_STATE.target and #RA_STATE.target > 0 then
-            table.insert(extra, "--target"); table.insert(extra, RA_STATE.target)
-          end
-          if RA_STATE.no_default then
-            table.insert(extra, "--no-default-features")
-          end
-          if #feats > 0 then
-            table.insert(extra, "--features"); table.insert(extra, table.concat(feats, ","))
-          end
-          return extra
-        end)(),
-      },
-      procMacro = { enable = true },
-    },
-  }
+local function ra_apply_config(bufnr, ra_payload)
+  bufnr = bufnr or 0
 
-  -- Get active rust-analyzer clients (NVIM 0.10+ API first, then fallback)
-  local clients = (vim.lsp.get_clients and vim.lsp.get_clients({ name = "rust_analyzer" }))
-      or (function()
-        local acc = {}
-        for _, c in ipairs(vim.lsp.get_active_clients()) do
-          if c.name == "rust_analyzer" then table.insert(acc, c) end
-        end
-        return acc
-      end)()
+  -- 0) sanity checks
+  if vim.fn.exists(":RustAnalyzer") ~= 2 then
+    return vim.notify("RustAnalyzer command not found (is rustaceanvim loaded?)", vim.log.levels.ERROR)
+  end
+  if vim.fn.bufexists(bufnr) ~= 1 then
+    return vim.notify(("Buffer %d does not exist"):format(bufnr), vim.log.levels.ERROR)
+  end
+  local ra_clients = vim.lsp.get_clients({ bufnr = bufnr, name = "rust-analyzer" })
+  if #ra_clients == 0 then
+    return vim.notify(("rust-analyzer not attached to buffer %d"):format(bufnr), vim.log.levels.WARN)
+  end
 
-  if #clients == 0 then
-    vim.notify("rust-analyzer LSP client not found (is it started?)", vim.log.levels.WARN)
+  -- 1) build & validate the table string we'll pass to the command
+  local lua_tbl = ra_payload
+  if lua_tbl:find("[\r\n]") then
+    return vim.notify("RustAnalyzer config table contains newline(s): " .. lua_tbl, vim.log.levels.ERROR)
+  end
+  local ok_eval = pcall(vim.fn.luaeval, lua_tbl)
+  if not ok_eval then
+    return vim.notify("Invalid Lua table for RustAnalyzer config: " .. lua_tbl, vim.log.levels.ERROR)
+  end
+
+  -- 2) run in a *window* that shows the buffer (buf_call alone can be ignored by plugins)
+  local cmdline = "noautocmd RustAnalyzer config " .. lua_tbl
+  local win = vim.fn.bufwinid(bufnr)
+  local created = false
+  if win == -1 then
+    -- create a tiny throwaway float so we get a real window context
+    win = vim.api.nvim_open_win(bufnr, false, {
+      relative = "editor",
+      row = 0,
+      col = 0,
+      width = 1,
+      height = 1,
+      style = "minimal",
+      focusable = false,
+      zindex = 200,
+    })
+    created = true
+  end
+
+  local ok_cmd, err = pcall(vim.api.nvim_win_call, win, function()
+    -- Important: use the *string* form (no structured args, which would quote your table)
+    vim.cmd(cmdline)
+  end)
+
+  if created then pcall(vim.api.nvim_win_close, win, true) end
+
+  if ok_cmd then
     return
   end
 
-  -- Apply to all rust-analyzer clients
-  for _, client in ipairs(clients) do
-    -- Merge with existing settings so we don't clobber unrelated config
-    client.config.settings = vim.tbl_deep_extend(
-      "force",
-      client.config.settings or {},
-      new_settings
-    )
-    -- Notify rust-analyzer the settings changed
-    client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
+  -- 3) fallback: update the attached RA clients directly (per-buffer)
+  vim.notify("RustAnalyzer config failed via command, falling back to LSP: " .. tostring(err), vim.log.levels.WARN)
+  for _, client in ipairs(ra_clients) do
+    local merged = vim.tbl_deep_extend("force", client.config.settings or {}, {
+      ["rust-analyzer"] = ra_payload,
+    })
+    client.config.settings = merged
+    client.notify("workspace/didChangeConfiguration", { settings = merged })
+  end
+end
+
+-- Build rust-analyzer settings from state and apply
+local function apply_ra(bufnr)
+  bufnr = bufnr or 0
+
+  local feats = features_list()
+
+  -- INNER table (what :RustAnalyzer config expects)
+  local ra_payload = {
+    cargo = {
+      target = RA_STATE.target,
+      noDefaultFeatures = RA_STATE.no_default,
+      features = feats,
+      buildScripts = { enable = true },
+    },
+    check = {
+      command = "clippy",
+      extraArgs = (function()
+        local extra = {}
+        if RA_STATE.target and #RA_STATE.target > 0 then
+          table.insert(extra, "--target"); table.insert(extra, RA_STATE.target)
+        end
+        if RA_STATE.no_default then
+          table.insert(extra, "--no-default-features")
+        end
+        if #feats > 0 then
+          table.insert(extra, "--features"); table.insert(extra, table.concat(feats, ","))
+        end
+        return extra
+      end)(),
+    },
+    procMacro = { enable = true },
+  }
+
+  -- Prefer the command when available
+  if vim.fn.exists(":RustAnalyzer") == 2 then
+    -- one-line Lua literal (no newlines/indent)
+    local lua_tbl = vim.inspect(ra_payload, { newline = "", indent = "" })
+
+    -- Optional: validate we produced a parseable Lua table before calling the command
+    local ok_eval, _ = pcall(vim.fn.luaeval, lua_tbl)
+    if not ok_eval then
+      vim.notify("RustAnalyzer: produced an invalid Lua table: " .. lua_tbl, vim.log.levels.ERROR)
+      return
+    end
+
+    print(lua_tbl)
+    print(bufnr)
+
+    -- vim.api.nvim_buf_call(bufnr, function()
+    --   vim.cmd("RustAnalyzer config " .. lua_tbl)
+    -- end)
+
+    ra_apply_config(bufnr, lua_tbl)
+
+    -- structured form avoids weird parsing/escaping
+    if not ok_cmd then
+      vim.notify("RustAnalyzer config failed: " .. tostring(err), vim.log.levels.ERROR)
+      return
+    end
+  else
+    -- Fallback: raw LSP notify on attached rust-analyzer clients for this buffer
+    local ra_clients = vim.lsp.get_clients({ bufnr = bufnr, name = "rust-analyzer" })
+    if #ra_clients == 0 then
+      vim.notify("rust-analyzer not attached to this buffer", vim.log.levels.WARN)
+      return
+    end
+    local merged_wrapper
+    for _, client in ipairs(ra_clients) do
+      merged_wrapper = vim.tbl_deep_extend(
+        "force",
+        client.config.settings or {},
+        { ["rust-analyzer"] = ra_payload } -- wrapper only for LSP
+      )
+      client.config.settings = merged_wrapper
+      client.notify("workspace/didChangeConfiguration", { settings = merged_wrapper })
+    end
   end
 
   vim.notify(
@@ -157,6 +245,14 @@ end
 
 -- Telescope picker
 function pick_cargo_features_with_telescope()
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  -- Check if we're being called from a buffer which has rust-analyzer attached to it
+  if #vim.lsp.get_clients({ bufnr = bufnr, name = "rust-analyzer" }) == 0 then
+    vim.notify("CargoFeatures: run this from a Rust buffer with rust-analyzer attached", vim.log.levels.WARN)
+    return
+  end
+
   local feats, defaults = get_cargo_features()
   if not feats then return end
 
@@ -202,7 +298,7 @@ function pick_cargo_features_with_telescope()
         for _, e in ipairs(sel) do
           RA_STATE.features[e.value] = true
         end
-        apply_ra()
+        apply_ra(bufnr)
         actions.close(prompt_bufnr)
       end
 
