@@ -14,84 +14,12 @@ local function features_list()
   return out
 end
 
--- one-line Lua literal (no newlines/indent), not JSON
-local function to_oneline_lua(tbl)
-  return vim.inspect(tbl, { newline = "", indent = "" })
-end
-
-local function ra_apply_config(bufnr, ra_payload)
-  bufnr = bufnr or 0
-
-  -- 0) sanity checks
-  if vim.fn.exists(":RustAnalyzer") ~= 2 then
-    return vim.notify("RustAnalyzer command not found (is rustaceanvim loaded?)", vim.log.levels.ERROR)
-  end
-  if vim.fn.bufexists(bufnr) ~= 1 then
-    return vim.notify(("Buffer %d does not exist"):format(bufnr), vim.log.levels.ERROR)
-  end
-  local ra_clients = vim.lsp.get_clients({ bufnr = bufnr, name = "rust-analyzer" })
-  if #ra_clients == 0 then
-    return vim.notify(("rust-analyzer not attached to buffer %d"):format(bufnr), vim.log.levels.WARN)
-  end
-
-  -- 1) build & validate the table string we'll pass to the command
-  local lua_tbl = ra_payload
-  if lua_tbl:find("[\r\n]") then
-    return vim.notify("RustAnalyzer config table contains newline(s): " .. lua_tbl, vim.log.levels.ERROR)
-  end
-  local ok_eval = pcall(vim.fn.luaeval, lua_tbl)
-  if not ok_eval then
-    return vim.notify("Invalid Lua table for RustAnalyzer config: " .. lua_tbl, vim.log.levels.ERROR)
-  end
-
-  -- 2) run in a *window* that shows the buffer (buf_call alone can be ignored by plugins)
-  local cmdline = "noautocmd RustAnalyzer config " .. lua_tbl
-  local win = vim.fn.bufwinid(bufnr)
-  local created = false
-  if win == -1 then
-    -- create a tiny throwaway float so we get a real window context
-    win = vim.api.nvim_open_win(bufnr, false, {
-      relative = "editor",
-      row = 0,
-      col = 0,
-      width = 1,
-      height = 1,
-      style = "minimal",
-      focusable = false,
-      zindex = 200,
-    })
-    created = true
-  end
-
-  local ok_cmd, err = pcall(vim.api.nvim_win_call, win, function()
-    -- Important: use the *string* form (no structured args, which would quote your table)
-    vim.cmd(cmdline)
-  end)
-
-  if created then pcall(vim.api.nvim_win_close, win, true) end
-
-  if ok_cmd then
-    return
-  end
-
-  -- 3) fallback: update the attached RA clients directly (per-buffer)
-  vim.notify("RustAnalyzer config failed via command, falling back to LSP: " .. tostring(err), vim.log.levels.WARN)
-  for _, client in ipairs(ra_clients) do
-    local merged = vim.tbl_deep_extend("force", client.config.settings or {}, {
-      ["rust-analyzer"] = ra_payload,
-    })
-    client.config.settings = merged
-    client.notify("workspace/didChangeConfiguration", { settings = merged })
-  end
-end
-
--- Build rust-analyzer settings from state and apply
+-- Build rust-analyzer settings from state and apply to the client(s) attached to bufnr
 local function apply_ra(bufnr)
   bufnr = bufnr or 0
 
   local feats = features_list()
 
-  -- INNER table (what :RustAnalyzer config expects)
   local ra_payload = {
     cargo = {
       target = RA_STATE.target,
@@ -118,54 +46,42 @@ local function apply_ra(bufnr)
     procMacro = { enable = true },
   }
 
-  -- Prefer the command when available
-  if vim.fn.exists(":RustAnalyzer") == 2 then
-    -- one-line Lua literal (no newlines/indent)
-    local lua_tbl = vim.inspect(ra_payload, { newline = "", indent = "" })
-
-    -- Optional: validate we produced a parseable Lua table before calling the command
-    local ok_eval, _ = pcall(vim.fn.luaeval, lua_tbl)
-    if not ok_eval then
-      vim.notify("RustAnalyzer: produced an invalid Lua table: " .. lua_tbl, vim.log.levels.ERROR)
-      return
+  -- Find only the rust-analyzer client(s) attached to this buffer
+  local attached = vim.lsp.get_clients({ bufnr = bufnr })
+  local ra_clients = {}
+  for _, c in ipairs(attached) do
+    if c.name == "rust_analyzer" or c.name == "rust-analyzer" then
+      table.insert(ra_clients, c)
     end
+  end
+  if #ra_clients == 0 then
+    vim.notify(("rust-analyzer not attached to buffer %d (see :LspInfo)"):format(bufnr), vim.log.levels.WARN)
+    return
+  end
 
-    print(lua_tbl)
-    print(bufnr)
+  for _, client in ipairs(ra_clients) do
+    if not (client.is_stopped and client:is_stopped()) then
+      -- Merge inside the rust-analyzer section so we don't clobber unrelated subkeys
+      local existing_ra      = ((client.config and client.config.settings) or {})["rust-analyzer"] or {}
+      local merged_ra        = vim.tbl_deep_extend("force", existing_ra, ra_payload)
 
-    -- vim.api.nvim_buf_call(bufnr, function()
-    --   vim.cmd("RustAnalyzer config " .. lua_tbl)
-    -- end)
+      -- Write into Neovim's config stores used to answer workspace/configuration
+      client.config          = client.config or {}
+      client.config.settings = vim.tbl_deep_extend("force", client.config.settings or {},
+        { ["rust-analyzer"] = merged_ra })
 
-    ra_apply_config(bufnr, lua_tbl)
+      -- Some Neovim versions also consult client.settings
+      client.settings        = vim.tbl_deep_extend("force", client.settings or {}, { ["rust-analyzer"] = merged_ra })
 
-    -- structured form avoids weird parsing/escaping
-    if not ok_cmd then
-      vim.notify("RustAnalyzer config failed: " .. tostring(err), vim.log.levels.ERROR)
-      return
-    end
-  else
-    -- Fallback: raw LSP notify on attached rust-analyzer clients for this buffer
-    local ra_clients = vim.lsp.get_clients({ bufnr = bufnr, name = "rust-analyzer" })
-    if #ra_clients == 0 then
-      vim.notify("rust-analyzer not attached to this buffer", vim.log.levels.WARN)
-      return
-    end
-    local merged_wrapper
-    for _, client in ipairs(ra_clients) do
-      merged_wrapper = vim.tbl_deep_extend(
-        "force",
-        client.config.settings or {},
-        { ["rust-analyzer"] = ra_payload } -- wrapper only for LSP
-      )
-      client.config.settings = merged_wrapper
-      client.notify("workspace/didChangeConfiguration", { settings = merged_wrapper })
+      -- IMPORTANT: many servers ignore the payload here and re-query via workspace/configuration.
+      -- Send an empty object to force a refresh from client.(config.)settings.
+      client.notify("workspace/didChangeConfiguration", { settings = vim.empty_dict() })
     end
   end
 
   vim.notify(
-    ("rust-analyzer: target=%s  features=[%s]  no_default=%s")
-    :format(RA_STATE.target or "∅", table.concat(feats, ","), tostring(RA_STATE.no_default)),
+    ("rust-analyzer (buf %d): target=%s  features=[%s]  no_default=%s")
+    :format(bufnr, RA_STATE.target or "∅", table.concat(feats, ","), tostring(RA_STATE.no_default)),
     vim.log.levels.INFO
   )
 end
@@ -243,12 +159,19 @@ local function get_cargo_features()
   return list, defaults, pkg.name
 end
 
--- Telescope picker
+
+-- Telescope picker with checkboxes + proper multi-select
 function pick_cargo_features_with_telescope()
   local bufnr = vim.api.nvim_get_current_buf()
 
-  -- Check if we're being called from a buffer which has rust-analyzer attached to it
-  if #vim.lsp.get_clients({ bufnr = bufnr, name = "rust-analyzer" }) == 0 then
+  -- Ensure RA is attached (accept both names)
+  local has_ra = false
+  for _, c in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+    if c.name == "rust_analyzer" or c.name == "rust-analyzer" then
+      has_ra = true; break
+    end
+  end
+  if not has_ra then
     vim.notify("CargoFeatures: run this from a Rust buffer with rust-analyzer attached", vim.log.levels.WARN)
     return
   end
@@ -256,48 +179,85 @@ function pick_cargo_features_with_telescope()
   local feats, defaults = get_cargo_features()
   if not feats then return end
 
-  local ok, _ = pcall(require, "telescope")
+  local ok = pcall(require, "telescope")
   if not ok then
     vim.notify("telescope.nvim not found", vim.log.levels.ERROR)
     return
   end
 
-  local pickers      = require("telescope.pickers")
-  local finders      = require("telescope.finders")
-  local conf         = require("telescope.config").values
-  local actions      = require("telescope.actions")
-  local action_state = require("telescope.actions.state")
+  local pickers       = require("telescope.pickers")
+  local finders       = require("telescope.finders")
+  local conf          = require("telescope.config").values
+  local actions       = require("telescope.actions")
+  local action_state  = require("telescope.actions.state")
+  local entry_display = require("telescope.pickers.entry_display")
+
+  local defaults_set  = {}
+  for _, d in ipairs(defaults or {}) do defaults_set[d] = true end
+
+  local displayer = entry_display.create({
+    separator = " ",
+    items = {
+      { width = 3 },        -- [x]/[ ]
+      { remaining = true }, -- feature name + (default) tag
+    },
+  })
+
+  local function entry_maker(f)
+    local enabled = RA_STATE.features[f] == true
+    local is_default = defaults_set[f] == true
+    return {
+      value = f,
+      ordinal = f,
+      enabled = enabled,
+      is_default = is_default,
+      display = function(entry)
+        local box = entry.enabled and "[x]" or "[ ]"
+        local name = entry.value .. (entry.is_default and "  (default)" or "")
+        return displayer {
+          { box, entry.enabled and "TelescopeResultsIdentifier" or "TelescopeResultsComment" },
+          name,
+        }
+      end,
+    }
+  end
+
+  local function make_finder()
+    return finders.new_table({
+      results = feats,
+      entry_maker = entry_maker,
+    })
+  end
+
+  local function sync_from_picker(picker, prompt_bufnr)
+    local selected = picker:get_multi_selection()
+    if #selected == 0 then
+      local one = action_state.get_selected_entry()
+      if one then selected = { one } end
+    end
+    RA_STATE.features = {}
+    for _, e in ipairs(selected) do
+      RA_STATE.features[e.value] = true
+    end
+    picker:refresh(make_finder(), { reset_prompt = false })
+  end
 
   pickers.new({}, {
     prompt_title = "Cargo features",
     initial_mode = "normal",
-    finder = finders.new_table({
-      results = feats,
-      entry_maker = function(f)
-        return {
-          value = f,
-          display = f,
-          ordinal = f,
-        }
-      end,
-    }),
+    finder = make_finder(),
     sorter = conf.generic_sorter({}),
     attach_mappings = function(prompt_bufnr, map)
+      local picker = action_state.get_current_picker(prompt_bufnr)
+
+      local function toggle_and_sync(next_fn)
+        actions.toggle_selection(prompt_bufnr)
+        sync_from_picker(picker, prompt_bufnr)
+        if next_fn then next_fn(prompt_bufnr) end
+      end
+
       local function accept()
-        local picker = action_state.get_current_picker(prompt_bufnr)
-        local sel = picker:get_multi_selection()
-
-        -- If nothing was toggled, take the currently highlighted entry
-        if #sel == 0 then
-          local one = action_state.get_selected_entry()
-          if one then sel = { one } end
-        end
-
-        -- Reset & set chosen features
-        RA_STATE.features = {}
-        for _, e in ipairs(sel) do
-          RA_STATE.features[e.value] = true
-        end
+        sync_from_picker(picker, prompt_bufnr)
         apply_ra(bufnr)
         actions.close(prompt_bufnr)
       end
@@ -305,17 +265,10 @@ function pick_cargo_features_with_telescope()
       map("i", "<CR>", accept)
       map("n", "<CR>", accept)
 
-      -- Multi-select UX
-      map("i", "<Tab>", function()
-        actions.toggle_selection(prompt_bufnr)
-        actions.move_selection_next(prompt_bufnr)
-      end)
-      map("i", "<S-Tab>", function()
-        actions.toggle_selection(prompt_bufnr)
-        actions.move_selection_previous(prompt_bufnr)
-      end)
-      map("n", "<Tab>", actions.toggle_selection)
-      map("n", "<S-Tab>", actions.toggle_selection)
+      map("i", "<Tab>", function() toggle_and_sync(actions.move_selection_next) end)
+      map("i", "<S-Tab>", function() toggle_and_sync(actions.move_selection_previous) end)
+      map("n", "<Tab>", function() toggle_and_sync() end)
+      map("n", "<S-Tab>", function() toggle_and_sync() end)
 
       return true
     end,
@@ -360,6 +313,7 @@ end, { nargs = 1, complete = function() return { "on", "off" } end })
 vim.api.nvim_create_user_command("CargoFeatures", function()
   pick_cargo_features_with_telescope()
 end, {})
+
 
 -- AUTOCOMMANDS
 
