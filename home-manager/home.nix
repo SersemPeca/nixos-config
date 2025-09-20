@@ -13,6 +13,7 @@
     ./hyprland/hyprland.nix
     ./dunst/dunst.nix
     ./fish/fish.nix
+    ./zoxide
   ];
 
   # custom = {
@@ -29,6 +30,7 @@
     dunst.enable = true;
     fish.enable = true;
     wezterm.enable = true;
+    zoxide.enable = true;
   };
 
   home = {
