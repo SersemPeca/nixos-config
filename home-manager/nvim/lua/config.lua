@@ -159,12 +159,14 @@ local function get_cargo_features()
   return list, defaults, pkg.name
 end
 
-
--- Telescope picker with checkboxes + proper multi-select
+-- Minimal, stable Telescope picker: use built-in keys
+--   <Tab>/<S-Tab> = toggle & move
+--   <CR>          = apply & close
+--   <Esc>         = cancel
 function pick_cargo_features_with_telescope()
   local bufnr = vim.api.nvim_get_current_buf()
 
-  -- Ensure RA is attached (accept both names)
+  -- Ensure rust-analyzer is attached
   local has_ra = false
   for _, c in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
     if c.name == "rust_analyzer" or c.name == "rust-analyzer" then
@@ -185,90 +187,47 @@ function pick_cargo_features_with_telescope()
     return
   end
 
-  local pickers       = require("telescope.pickers")
-  local finders       = require("telescope.finders")
-  local conf          = require("telescope.config").values
-  local actions       = require("telescope.actions")
-  local action_state  = require("telescope.actions.state")
-  local entry_display = require("telescope.pickers.entry_display")
+  local pickers      = require("telescope.pickers")
+  local finders      = require("telescope.finders")
+  local conf         = require("telescope.config").values
+  local actions      = require("telescope.actions")
+  local action_state = require("telescope.actions.state")
 
-  local defaults_set  = {}
+  -- annotate defaults in the label (purely cosmetic)
+  local defaults_set = {}
   for _, d in ipairs(defaults or {}) do defaults_set[d] = true end
 
-  local displayer = entry_display.create({
-    separator = " ",
-    items = {
-      { width = 3 },        -- [x]/[ ]
-      { remaining = true }, -- feature name + (default) tag
-    },
+  local finder = finders.new_table({
+    results = feats,
+    entry_maker = function(f)
+      local label = f .. (defaults_set[f] and "  (default)" or "")
+      return { value = f, display = label, ordinal = label }
+    end,
   })
 
-  local function entry_maker(f)
-    local enabled = RA_STATE.features[f] == true
-    local is_default = defaults_set[f] == true
-    return {
-      value = f,
-      ordinal = f,
-      enabled = enabled,
-      is_default = is_default,
-      display = function(entry)
-        local box = entry.enabled and "[x]" or "[ ]"
-        local name = entry.value .. (entry.is_default and "  (default)" or "")
-        return displayer {
-          { box, entry.enabled and "TelescopeResultsIdentifier" or "TelescopeResultsComment" },
-          name,
-        }
-      end,
-    }
-  end
-
-  local function make_finder()
-    return finders.new_table({
-      results = feats,
-      entry_maker = entry_maker,
-    })
-  end
-
-  local function sync_from_picker(picker, prompt_bufnr)
-    local selected = picker:get_multi_selection()
-    if #selected == 0 then
-      local one = action_state.get_selected_entry()
-      if one then selected = { one } end
-    end
-    RA_STATE.features = {}
-    for _, e in ipairs(selected) do
-      RA_STATE.features[e.value] = true
-    end
-    picker:refresh(make_finder(), { reset_prompt = false })
-  end
-
   pickers.new({}, {
-    prompt_title = "Cargo features",
+    prompt_title = "Cargo features — use <Tab>/<S-Tab> to toggle, <CR> to apply, <Esc> to cancel",
     initial_mode = "normal",
-    finder = make_finder(),
+    finder = finder,
     sorter = conf.generic_sorter({}),
-    attach_mappings = function(prompt_bufnr, map)
-      local picker = action_state.get_current_picker(prompt_bufnr)
+    attach_mappings = function(prompt_bufnr, _)
+      -- On <CR>, read multi-selection, mirror into RA_STATE, apply, close
+      actions.select_default:replace(function()
+        local picker      = action_state.get_current_picker(prompt_bufnr)
+        local selected    = picker:get_multi_selection()
 
-      local function toggle_and_sync(next_fn)
-        actions.toggle_selection(prompt_bufnr)
-        sync_from_picker(picker, prompt_bufnr)
-        if next_fn then next_fn(prompt_bufnr) end
-      end
+        RA_STATE.features = {}
+        if #selected == 0 then
+          -- If nothing is marked, take the current line (optional; matches your old UX)
+          local one = action_state.get_selected_entry()
+          if one then RA_STATE.features[one.value] = true end
+        else
+          for _, e in ipairs(selected) do RA_STATE.features[e.value] = true end
+        end
 
-      local function accept()
-        sync_from_picker(picker, prompt_bufnr)
         apply_ra(bufnr)
         actions.close(prompt_bufnr)
-      end
-
-      map("i", "<CR>", accept)
-      map("n", "<CR>", accept)
-
-      map("i", "<Tab>", function() toggle_and_sync(actions.move_selection_next) end)
-      map("i", "<S-Tab>", function() toggle_and_sync(actions.move_selection_previous) end)
-      map("n", "<Tab>", function() toggle_and_sync() end)
-      map("n", "<S-Tab>", function() toggle_and_sync() end)
+      end)
 
       return true
     end,
