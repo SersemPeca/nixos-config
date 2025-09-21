@@ -314,6 +314,151 @@ vim.api.nvim_create_user_command("CargoFeatures", function()
   pick_cargo_features_with_telescope()
 end, {})
 
+-- Get available Rust targets (prefer installed ones; fall back to full list)
+local function get_cargo_targets()
+  -- 1) rustup installed targets (fast, likely what you care about)
+  local ok1, lines1 = pcall(vim.fn.systemlist, { "rustup", "target", "list", "--installed" })
+  if ok1 and lines1 and vim.v.shell_error == 0 and #lines1 > 0 then
+    local t = {}
+    for _, l in ipairs(lines1) do
+      local s = vim.trim(l)
+      if #s > 0 then table.insert(t, s) end
+    end
+    table.sort(t)
+    return t
+  end
+
+  -- 2) fallback: ask rustc for all known targets
+  local ok2, lines2 = pcall(vim.fn.systemlist, { "rustc", "--print", "target-list" })
+  if ok2 and lines2 and vim.v.shell_error == 0 and #lines2 > 0 then
+    local t = {}
+    for _, l in ipairs(lines2) do
+      local s = vim.trim(l)
+      if #s > 0 then table.insert(t, s) end
+    end
+    table.sort(t)
+    return t
+  end
+
+  -- 3) last resort: a tiny curated list so the picker still works
+  return {
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "wasm32-unknown-unknown",
+  }
+end
+
+-- Telescope picker: choose a target triple (single select)
+function pick_cargo_targets_with_telescope()
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  -- Ensure rust-analyzer is attached to this buffer
+  local has_ra = false
+  for _, c in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+    if c.name == "rust_analyzer" or c.name == "rust-analyzer" then
+      has_ra = true; break
+    end
+  end
+  if not has_ra then
+    vim.notify("CargoTargets: run this from a Rust buffer with rust-analyzer attached", vim.log.levels.WARN)
+    return
+  end
+
+  local targets = get_cargo_targets()
+  if not targets or #targets == 0 then
+    vim.notify("No Rust targets found (rustup/rustc not available?)", vim.log.levels.ERROR)
+    return
+  end
+
+  local ok = pcall(require, "telescope")
+  if not ok then
+    vim.notify("telescope.nvim not found", vim.log.levels.ERROR)
+    return
+  end
+
+  local pickers       = require("telescope.pickers")
+  local finders       = require("telescope.finders")
+  local conf          = require("telescope.config").values
+  local actions       = require("telescope.actions")
+  local action_state  = require("telescope.actions.state")
+  local entry_display = require("telescope.pickers.entry_display")
+
+  -- Simple radio bullet UI: (•) for current target, ( ) otherwise
+  local displayer     = entry_display.create({
+    separator = " ",
+    items = {
+      { width = 3 },        -- (•) / ( )
+      { remaining = true }, -- target triple
+    },
+  })
+
+  local function entry_maker(t)
+    local selected = (RA_STATE.target == t)
+    return {
+      value = t,
+      ordinal = t,
+      display = function()
+        local bullet = selected and "(•)" or "( )"
+        return displayer {
+          { bullet, selected and "TelescopeResultsIdentifier" or "TelescopeResultsComment" },
+          t,
+        }
+      end,
+    }
+  end
+
+  local function make_finder()
+    return finders.new_table({
+      results = targets,
+      entry_maker = entry_maker,
+    })
+  end
+
+  pickers.new({}, {
+    prompt_title = "Cargo targets",
+    initial_mode = "normal",
+    finder = make_finder(),
+    sorter = conf.generic_sorter({}),
+    attach_mappings = function(prompt_bufnr, map)
+      local picker = action_state.get_current_picker(prompt_bufnr)
+
+      local function accept()
+        local e = action_state.get_selected_entry()
+        if e then
+          RA_STATE.target = e.value
+          apply_ra(bufnr)
+        end
+        actions.close(prompt_bufnr)
+      end
+
+      -- Enter = set target & apply
+      map("i", "<CR>", accept)
+      map("n", "<CR>", accept)
+
+      -- Optional: <C-c> to clear target (host default)
+      map("i", "<C-c>", function()
+        RA_STATE.target = nil
+        apply_ra(bufnr)
+        actions.close(prompt_bufnr)
+      end)
+      map("n", "<C-c>", function()
+        RA_STATE.target = nil
+        apply_ra(bufnr)
+        actions.close(prompt_bufnr)
+      end)
+
+      return true
+    end,
+  }):find()
+end
+
+-- Command to open the targets picker
+vim.api.nvim_create_user_command("CargoTargets", function()
+  pick_cargo_targets_with_telescope()
+end, {})
+
 
 -- AUTOCOMMANDS
 
