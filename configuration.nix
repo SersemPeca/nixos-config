@@ -109,19 +109,8 @@
     packages = [ ];
   };
 
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users.petara = {
-      imports = [
-        nixvim.homeManagerModules.nixvim
-        ./home-manager/home.nix
-      ];
-    };
-  };
-
   # Allow unfree packages
-  # nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
