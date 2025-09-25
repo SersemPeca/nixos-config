@@ -1,13 +1,23 @@
 {
   pkgs,
   lib,
+  mcp-hub,
+  mcp-hub-nvim,
   ...
 }:
 
 {
 
   imports = [
-    ./nvim/nvim.nix
+    (import ./nvim/nvim.nix {
+      inherit
+        pkgs
+        lib
+        mcp-hub
+        mcp-hub-nvim
+        ;
+    })
+    # ./nvim/nvim.nix
     ./wezterm/wezterm.nix
     ./waybar/waybar.nix
     ./hyprland/hyprland.nix

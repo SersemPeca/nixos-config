@@ -1,8 +1,13 @@
 {
   lib,
   pkgs,
+  mcp-hub-nvim,
+  mcp-hub,
   ...
 }:
+let
+  mcpHubCli = mcp-hub.packages.${pkgs.system}.default;
+in
 {
   imports = [
     ./which-key.nix
@@ -53,11 +58,21 @@
       rustaceanvim = {
         enable = true;
       };
+
+      # Agentic coding
+      avante = {
+        enable = true;
+        settings = {
+          provider = "openai";
+          auto_suggestions_provider = "copilot";
+        };
+      };
     };
 
     extraPackages = with pkgs; [
       wl-clipboard
       ripgrep
+      mcpHubCli
     ];
 
     extraPlugins = [
@@ -70,6 +85,29 @@
           hash = "sha256-ZIDvVto6c9PXtE8O0vp1fL6fuDJrUrYZ0zIXtJBTw+0=";
         };
       })
+
+      (pkgs.vimUtils.buildVimPlugin {
+        name = "cargora.nvim";
+        src = pkgs.fetchFromGitHub {
+          owner = "SersemPeca";
+          repo = "cargora.nvim";
+          rev = "1c580d261dea151cb385492f926af604685d32ab";
+          hash = "sha256-HZqx2kvaESRriN/bdsuGwKxefDvm3NQGoXd/th0haz4=";
+        };
+      })
+
+      (pkgs.vimUtils.buildVimPlugin {
+        name = "cargora.nvim";
+        src = pkgs.fetchFromGitHub {
+          owner = "SersemPeca";
+          repo = "cargora.nvim";
+          rev = "1c580d261dea151cb385492f926af604685d32ab";
+          hash = "sha256-HZqx2kvaESRriN/bdsuGwKxefDvm3NQGoXd/th0haz4=";
+        };
+      })
+
+      mcp-hub-nvim
+
     ];
 
     lsp = {
@@ -204,15 +242,6 @@
       softtabstop = 2;
       expandtab = true;
     };
-
-    # extraConfigLua = ''
-    #   -- Autoformat on save using LSP
-    #   vim.api.nvim_create_autocmd("BufWritePre", {
-    #     callback = function()
-    #       vim.lsp.buf.format({ async = false })
-    #     end,
-    #   })
-    # '';
 
     extraConfigLua = builtins.readFile ./lua/config.lua;
   };

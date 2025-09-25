@@ -20,6 +20,19 @@
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    mcp-hub = {
+      url = "github:ravitemer/mcp-hub";
+      inputs.nixpkgs.follows = "nixpkgs";
+      flake = true;
+    };
+
+    mcp-hub-nvim = {
+      url = "github:ravitemer/mcphub.nvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+      flake = true;
+    };
+
   };
 
   outputs =
@@ -29,6 +42,8 @@
       home-manager,
       nixvim,
       hyprland,
+      mcp-hub,
+      mcp-hub-nvim,
       ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
@@ -36,15 +51,12 @@
       systems = [ "x86_64-linux" ];
 
       perSystem =
-        { system, ... }:
+        { system, pkgs, ... }:
         {
           _module.args.pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
           };
-
-          # packages.default = pkgs.hello;
-          # devShells.default = pkgs.mkShell { buildInputs = [ pkgs.git ]; };
         };
 
       flake =
@@ -58,24 +70,36 @@
 
           hmLib = home-manager.lib;
 
+          mcp-hub-nvim = inputs.mcp-hub-nvim.packages."${system}".default;
+
+          system = "x86_64-linux";
+
+          pkgs = mkPkgs system;
+
           mkHM =
             system: user:
             hmLib.homeManagerConfiguration {
-              pkgs = mkPkgs system;
+
+              inherit pkgs;
+
+              extraSpecialArgs = {
+                inherit mcp-hub mcp-hub-nvim;
+              };
+
               modules = [
                 ./home-manager/home.nix
                 nixvim.homeManagerModules.nixvim
+
                 {
                   home.username = user;
                   home.homeDirectory = "/home/${user}";
                 }
               ];
-              extraSpecialArgs = { inherit nixvim; };
             };
 
-          system = "x86_64-linux";
         in
         {
+
           nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
             inherit system;
             pkgs = mkPkgs system;
@@ -84,6 +108,27 @@
               home-manager.nixosModules.home-manager
               ./configuration.nix
               ./hardware-configuration.nix
+
+              (
+                { ... }:
+                {
+                  home-manager = {
+                    useGlobalPkgs = true;
+                    useUserPackages = true;
+
+                    extraSpecialArgs = {
+                      inherit mcp-hub mcp-hub-nvim;
+                    };
+
+                    users.petara = {
+                      imports = [
+                        nixvim.homeManagerModules.nixvim
+                        ./home-manager/home.nix
+                      ];
+                    };
+                  };
+                }
+              )
             ];
 
             specialArgs = {
@@ -93,7 +138,7 @@
 
           homeConfigurations = {
             petara = mkHM system "petara";
-            pesho = mkHM system "pesho";
+            # pesho = mkHM system "pesho";
           };
         };
     };
