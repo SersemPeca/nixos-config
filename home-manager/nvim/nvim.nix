@@ -55,18 +55,26 @@ in
         };
       };
 
-      rustaceanvim = {
-        enable = true;
-      };
+      # rustaceanvim = {
+      #   enable = true;
+      # };
 
       # Agentic coding
       avante = {
         enable = true;
         settings = {
           provider = "openai";
-          auto_suggestions_provider = "copilot";
+          # auto_suggestions_provider = "copilot";
         };
       };
+
+      refactoring = {
+        enable = true;
+      };
+
+      # vimtex = {
+      #   enable = true;
+      # };
     };
 
     extraPackages = with pkgs; [
@@ -96,15 +104,17 @@ in
         };
       })
 
-      (pkgs.vimUtils.buildVimPlugin {
-        name = "cargora.nvim";
-        src = pkgs.fetchFromGitHub {
-          owner = "SersemPeca";
-          repo = "cargora.nvim";
-          rev = "1c580d261dea151cb385492f926af604685d32ab";
-          hash = "sha256-HZqx2kvaESRriN/bdsuGwKxefDvm3NQGoXd/th0haz4=";
-        };
-      })
+      pkgs.vimPlugins.knap
+
+      # (pkgs.vimUtils.buildVimPlugin {
+      #   name = "knap";
+      #   src = pkgs.fetchFromGitHub {
+      #     owner = "frabjous";
+      #     repo = "knap";
+      #     rev = "7db44d0bb760120142cc1e8f43e44976de59c2f6";
+      #     hash = "sha256-BX/y1rEcDqj96rDssWwrMbj93SVIfFCW3tFgsFI1d4M=";
+      #   };
+      # })
 
       mcp-hub-nvim
 
@@ -113,9 +123,10 @@ in
     lsp = {
       servers = {
         nil_ls.enable = true;
-        # rust_analyzer.enable = true;
+        rust_analyzer.enable = true;
         gopls.enable = true;
-        ccls.enable = true;
+        # ccls.enable = true;
+        clangd.enable = true;
         nimls.enable = true;
         lua_ls.enable = true;
       };
@@ -214,20 +225,18 @@ in
 
       {
         mode = "n";
-        key = "<leader>rtw";
-        action = ":RustAnalyzer config { cargo = { target = \" wasm32-unknown-unknown \" } }<CR>";
-      }
-
-      {
-        mode = "n";
-        key = "<leader>rtn";
-        action = ":RustAnalyzer config { cargo = { target = \" x86_64-linux-gnu-unknown \" } }<CR>";
-      }
-
-      {
-        mode = "n";
         key = "<leader>/";
         action = ":ToggleTerm<CR>";
+      }
+
+      {
+        mode = "x";
+        key = "<leader>re";
+        action = ":Refactor extract<CR>";
+        options = {
+          silent = true;
+          noremap = true;
+        };
       }
     ];
 

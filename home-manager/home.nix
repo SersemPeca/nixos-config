@@ -83,6 +83,10 @@
       userName = "SersemPeca";
       userEmail = "p.atanasov21@abv.bg";
     };
+
+    btop = {
+      enable = true;
+    };
   };
 
 }
