@@ -85,6 +85,11 @@ in
 
     extraPlugins = [
       (pkgs.vimUtils.buildVimPlugin {
+        name = "takovata";
+        src = ./banica;
+      })
+
+      (pkgs.vimUtils.buildVimPlugin {
         name = "nim.vim";
         src = pkgs.fetchFromGitHub {
           owner = "zah";

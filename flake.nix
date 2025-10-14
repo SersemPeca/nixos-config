@@ -62,9 +62,9 @@
       flake =
         let
           mkPkgs =
-            system:
+            system: overlays:
             import nixpkgs {
-              inherit system;
+              inherit system overlays;
               config.allowUnfree = true;
             };
 
@@ -74,7 +74,11 @@
 
           system = "x86_64-linux";
 
-          pkgs = mkPkgs system;
+          pkgs = mkPkgs system [
+            (self: super: {
+              codex = super.callPackage ./packages/codex-cli/default.nix { };
+            })
+          ];
 
           mkHM =
             system: user:
@@ -100,9 +104,10 @@
         in
         {
 
+          packages.${system}.codex = pkgs.codex;
+
           nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-            inherit system;
-            pkgs = mkPkgs system;
+            inherit system pkgs;
 
             modules = [
               home-manager.nixosModules.home-manager
@@ -137,8 +142,8 @@
           };
 
           homeConfigurations = {
-            petara = mkHM system "petara";
-            # pesho = mkHM system "pesho";
+            # petara = mkHM system "petara";
+            pesho = mkHM system "pesho";
           };
         };
     };
