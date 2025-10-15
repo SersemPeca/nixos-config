@@ -142,8 +142,8 @@
           };
 
           homeConfigurations = {
-            # petara = mkHM system "petara";
-            pesho = mkHM system "pesho";
+            petara = mkHM system "petara";
+            # pesho = mkHM system "pesho";
           };
         };
     };

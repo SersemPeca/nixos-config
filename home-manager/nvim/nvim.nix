@@ -86,7 +86,7 @@ in
     extraPlugins = [
       (pkgs.vimUtils.buildVimPlugin {
         name = "takovata";
-        src = ./banica;
+        src = ./misc;
       })
 
       (pkgs.vimUtils.buildVimPlugin {

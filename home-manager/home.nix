@@ -26,22 +26,22 @@
     ./zoxide
   ];
 
-  custom = {
-    hyprland.enable = false;
-    waybar.enable = false;
-    dunst.enable = false;
-    fish.enable = false;
-    wezterm.enable = false;
-  };
-
   # custom = {
-  #   hyprland.enable = true;
-  #   waybar.enable = true;
-  #   dunst.enable = true;
-  #   fish.enable = true;
-  #   wezterm.enable = true;
-  #   zoxide.enable = true;
+  #   hyprland.enable = false;
+  #   waybar.enable = false;
+  #   dunst.enable = false;
+  #   fish.enable = false;
+  #   wezterm.enable = false;
   # };
+
+  custom = {
+    hyprland.enable = true;
+    waybar.enable = true;
+    dunst.enable = true;
+    fish.enable = true;
+    wezterm.enable = true;
+    zoxide.enable = true;
+  };
 
   home = {
 
@@ -87,6 +87,7 @@
     btop = {
       enable = true;
     };
+
   };
 
 }
