@@ -120,6 +120,11 @@
     wezterm
     bluez
     usbutils
+
+    # Screen snapshotting utils
+    grim
+    slurp
+    wl-clipboard
   ];
   programs.hyprland = {
     enable = true;
