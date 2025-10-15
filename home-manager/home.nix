@@ -56,6 +56,9 @@
       # home-manager
 
       pkgs.nerd-fonts.fira-code
+
+      (pkgs.callPackage ../packages/codex-cli/default.nix { })
+      pkgs.signal-desktop
     ];
 
   };
