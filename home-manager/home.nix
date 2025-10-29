@@ -1,8 +1,6 @@
 {
   pkgs,
   lib,
-  mcp-hub,
-  mcp-hub-nvim,
   ...
 }:
 
@@ -13,8 +11,6 @@
       inherit
         pkgs
         lib
-        mcp-hub
-        mcp-hub-nvim
         ;
     })
     # ./nvim/nvim.nix

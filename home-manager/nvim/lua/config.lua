@@ -1,4 +1,4 @@
-require("mcphub").setup()
+ -- require("mcphub").setup()
 
 -- Autoformat on save using LSP
 vim.api.nvim_create_autocmd("BufWritePre", {

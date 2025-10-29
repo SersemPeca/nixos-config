@@ -1,13 +1,8 @@
 {
   lib,
   pkgs,
-  mcp-hub-nvim,
-  mcp-hub,
   ...
 }:
-let
-  mcpHubCli = mcp-hub.packages.${pkgs.system}.default;
-in
 {
   imports = [
     ./which-key.nix
@@ -60,27 +55,22 @@ in
       # };
 
       # Agentic coding
-      avante = {
-        enable = true;
-        settings = {
-          provider = "openai";
-          # auto_suggestions_provider = "copilot";
-        };
-      };
-
-      refactoring = {
-        enable = true;
-      };
 
       # vimtex = {
       #   enable = true;
+      # avante = {
+      #   enable = true;
+      #   settings = {
+      #     provider = "openai";
+      #     auto_suggestions_provider = "copilot";
+      #   };
       # };
     };
 
     extraPackages = with pkgs; [
       wl-clipboard
       ripgrep
-      mcpHubCli
+      # mcpHubCli
     ];
 
     extraPlugins = [
@@ -121,7 +111,7 @@ in
       #   };
       # })
 
-      mcp-hub-nvim
+      # mcp-hub-nvim
 
     ];
 
