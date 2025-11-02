@@ -123,7 +123,7 @@
                 ./hosts/lenovo/configuration.nix
                 ./hosts/lenovo/hardware-configuration.nix
 
-                nixos-hardware.nixosModules.lenovo-thinkpad-x1-11th-gen
+                nixos-hardware.nixosModules.lenovo-thinkpad-x1-12th-gen
 
                 (
                   { ... }:

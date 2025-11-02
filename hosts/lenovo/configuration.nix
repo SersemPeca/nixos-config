@@ -96,6 +96,8 @@
     displayManager.sddm.wayland.enable = true;
   };
 
+  services.upower.enable = true;
+
   services.seatd.enable = true;
 
   # services.greetd = {
@@ -169,6 +171,11 @@
     grim
     slurp
     wl-clipboard
+
+    # Battery utils
+    upower
+    acpi
+    tlp
   ];
 
   programs.hyprland = {

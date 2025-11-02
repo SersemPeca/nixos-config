@@ -60,7 +60,7 @@ in
           use_resize_increments = false,
           enable_scroll_bar = false,
           adjust_window_size_when_changing_font_size =  true,
-          enable_wayland = false,
+          enable_wayland = true,
           window_padding = { left = 0, right = 0, top = 0, bottom = 0 },
           default_prog = { "${fishBin}" },
 
