@@ -33,6 +33,12 @@
       flake = true;
     };
 
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware";
+      inputs.nixpkgs.follows = "nixpkgs";
+      flake = true;
+    };
+
   };
 
   outputs =
@@ -44,6 +50,7 @@
       hyprland,
       mcp-hub,
       mcp-hub-nvim,
+      nixos-hardware,
       ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
@@ -106,38 +113,79 @@
 
           packages.${system}.codex = pkgs.codex;
 
-          nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-            inherit system pkgs;
+          nixosConfigurations = {
+            nixos-lenovo = nixpkgs.lib.nixosSystem {
+              inherit system pkgs;
 
-            modules = [
-              home-manager.nixosModules.home-manager
-              ./configuration.nix
-              ./hardware-configuration.nix
+              modules = [
+                home-manager.nixosModules.home-manager
 
-              (
-                { ... }:
-                {
-                  home-manager = {
-                    useGlobalPkgs = true;
-                    useUserPackages = true;
+                ./hosts/lenovo/configuration.nix
+                ./hosts/lenovo/hardware-configuration.nix
 
-                    extraSpecialArgs = {
-                      inherit mcp-hub mcp-hub-nvim;
+                nixos-hardware.nixosModules.lenovo-thinkpad-x1-11th-gen
+
+                (
+                  { ... }:
+                  {
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      backupFileExtension = "backup";
+
+                      extraSpecialArgs = {
+                        inherit mcp-hub mcp-hub-nvim;
+                      };
+
+                      users.petara = {
+                        imports = [
+                          nixvim.homeManagerModules.nixvim
+                          ./home-manager/home.nix
+                        ];
+                      };
                     };
+                  }
+                )
+              ];
 
-                    users.petara = {
-                      imports = [
-                        nixvim.homeManagerModules.nixvim
-                        ./home-manager/home.nix
-                      ];
+              specialArgs = {
+                inherit nixvim hyprland;
+              };
+            };
+            nixos-framework = nixpkgs.lib.nixosSystem {
+              inherit system pkgs;
+
+              modules = [
+                home-manager.nixosModules.home-manager
+                ./hosts/framework/configuration.nix
+                ./hosts/famework/hardware-configuration.nix
+
+                (
+                  { ... }:
+                  {
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      backupFileExtension = "backup";
+
+                      extraSpecialArgs = {
+                        inherit mcp-hub mcp-hub-nvim;
+                      };
+
+                      users.petara = {
+                        imports = [
+                          nixvim.homeManagerModules.nixvim
+                          ./home-manager/home.nix
+                        ];
+                      };
                     };
-                  };
-                }
-              )
-            ];
+                  }
+                )
+              ];
 
-            specialArgs = {
-              inherit nixvim hyprland;
+              specialArgs = {
+                inherit nixvim hyprland;
+              };
             };
           };
 
