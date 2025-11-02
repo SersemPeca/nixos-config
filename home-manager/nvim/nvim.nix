@@ -34,6 +34,7 @@
       lspconfig.enable = true;
       web-devicons.enable = true;
       mini-icons.enable = true;
+      auto-session.enable = true;
       toggleterm.enable = true;
       bufferline.enable = true;
       nvim-autopairs.enable = true;
@@ -48,6 +49,11 @@
           indent.enable = true;
           highlight.enable = true;
         };
+      };
+
+      alpha = {
+        enable = true;
+        theme = "dashboard";
       };
 
       # rustaceanvim = {
