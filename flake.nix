@@ -152,6 +152,42 @@
                 inherit nixvim hyprland;
               };
             };
+
+            nixos-framework-mini = nixpkgs.lib.nixosSystem {
+              inherit system pkgs;
+
+              modules = [
+                home-manager.nixosModules.home-manager
+                ./hosts/framework-mini/configuration.nix
+                ./hosts/framework-mini/hardware-configuration.nix
+
+                (
+                  { ... }:
+                  {
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      backupFileExtension = "backup";
+
+                      extraSpecialArgs = {
+                        inherit mcp-hub mcp-hub-nvim;
+                      };
+
+                      users.petara = {
+                        imports = [
+                          nixvim.homeManagerModules.nixvim
+                          ./home-manager/home.nix
+                        ];
+                      };
+                    };
+                  }
+                )
+              ];
+
+              specialArgs = {
+                inherit nixvim hyprland;
+              };
+            };
             nixos-framework = nixpkgs.lib.nixosSystem {
               inherit system pkgs;
 
