@@ -13,18 +13,12 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    ../common.nix
   ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -32,30 +26,6 @@
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Hardware
-  hardware = {
-    enableAllFirmware = true;
-
-    logitech = {
-      wireless.enable = true;
-      wireless.enableGraphical = true;
-    };
-
-    bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-      settings = {
-        General = {
-          Experimental = true;
-        };
-        Policy = {
-          AutoEnable = true;
-        };
-      };
-    };
-
-  };
 
   # Enable networking
   networking.networkmanager.enable = true;
@@ -85,21 +55,6 @@
   # services.xserver.displayManager.gdm.enable = true;
   # services.xserver.desktopManager.gnome.enable = true;
 
-  services.xserver = {
-    enable = true;
-    layout = "us";
-    xkb = {
-      layout = "us";
-      variant = "";
-    };
-    displayManager.sddm.enable = true;
-    displayManager.sddm.wayland.enable = true;
-  };
-
-  services.upower.enable = true;
-
-  services.seatd.enable = true;
-
   # services.greetd = {
   #   enable = true;
   #   package = pkgs.greetd.tuigreet;
@@ -110,12 +65,6 @@
   #     };
   #   };
   # };
-
-  nix.gc = {
-    automatic = true;
-    dates = "daily";
-    options = "--delete-older-than 5d";
-  };
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -154,35 +103,6 @@
 
   # Install firefox.
   programs.firefox.enable = true;
-
-  # Allow unfree packages
-  # nixpkgs.config.allowUnfree = true;
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
-    wezterm
-    bluez
-    usbutils
-
-    # Screen snapshotting utils
-    grim
-    slurp
-    wl-clipboard
-
-    # Battery utils
-    upower
-    acpi
-    tlp
-  ];
-
-  programs.hyprland = {
-    enable = true;
-    package = hyprland.packages."${pkgs.system}".hyprland;
-    # withUWSM = true;
-  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

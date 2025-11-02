@@ -13,32 +13,8 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    ../common.nix
   ];
-
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-
-  # Hardware.
-  hardware.logitech.wireless.enable = true;
-  hardware.logitech.wireless.enableGraphical = true;
-  hardware.enableAllFirmware = true;
-
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-    settings = {
-      General = {
-        Experimental = true;
-      };
-      Policy = {
-        AutoEnable = true;
-      };
-    };
-  };
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -72,32 +48,6 @@
     LC_TIME = "bg_BG.UTF-8";
   };
 
-  # Configure keymap in X11
-  #services.xserver.xkb = {
-  #  layout = "us";
-  #  variant = "";
-  #};
-
-  services.xserver = {
-    enable = true;
-    layout = "us";
-    xkb = {
-      layout = "us";
-      variant = "";
-    };
-    displayManager.sddm.enable = true;
-    displayManager.sddm.wayland.enable = true;
-  };
-
-  nix.gc = {
-    automatic = true;
-    dates = "daily";
-    options = "--delete-older-than 5d";
-  };
-
-  #services.dbus.enable = true;
-  #services.logind.enable = true;
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.petara = {
     isNormalUser = true;
@@ -107,30 +57,6 @@
       "wheel"
     ];
     packages = [ ];
-  };
-
-  # Allow unfree packages
-  # nixpkgs.config.allowUnfree = true;
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
-    wezterm
-    bluez
-    usbutils
-
-    # Screen snapshotting utils
-    grim
-    slurp
-    wl-clipboard
-  ];
-
-  programs.hyprland = {
-    enable = true;
-    package = hyprland.packages."${pkgs.system}".hyprland;
-    # withUWSM = true;
   };
 
   # Some programs need SUID wrappers, can be configured further or are
