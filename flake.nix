@@ -161,6 +161,8 @@
                 ./hosts/framework-mini/configuration.nix
                 ./hosts/framework-mini/hardware-configuration.nix
 
+                nixos-hardware.nixosModules.framework-amd-ai-300-series
+
                 (
                   { ... }:
                   {
