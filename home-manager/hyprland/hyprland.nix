@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  hostName,
   ...
 }:
 {
@@ -24,6 +25,10 @@
 
         exec-once = [
           "waybar"
+        ];
+
+        monitor = lib.mkIf (hostName == "gpd-pocket-4") [
+          "eDP-1, preferred, auto, 1, transform, 3"
         ];
 
         bind = [

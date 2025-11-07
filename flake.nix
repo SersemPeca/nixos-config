@@ -174,6 +174,7 @@
 
                       extraSpecialArgs = {
                         inherit mcp-hub mcp-hub-nvim;
+                        hostName = "gpd-pocket-4";
                       };
 
                       users.petara = {
