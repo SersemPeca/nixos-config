@@ -153,6 +153,45 @@
               };
             };
 
+            nixos-gpd = nixpkgs.lib.nixosSystem {
+              inherit system pkgs;
+
+              modules = [
+                home-manager.nixosModules.home-manager
+
+                ./hosts/gpd/configuration.nix
+                ./hosts/gpd/hardware-configuration.nix
+
+                nixos-hardware.nixosModules.gpd-pocket-4
+
+                (
+                  { ... }:
+                  {
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      backupFileExtension = "backup";
+
+                      extraSpecialArgs = {
+                        inherit mcp-hub mcp-hub-nvim;
+                      };
+
+                      users.petara = {
+                        imports = [
+                          nixvim.homeManagerModules.nixvim
+                          ./home-manager/home.nix
+                        ];
+                      };
+                    };
+                  }
+                )
+              ];
+
+              specialArgs = {
+                inherit nixvim hyprland;
+              };
+            };
+
             nixos-framework-mini = nixpkgs.lib.nixosSystem {
               inherit system pkgs;
 
