@@ -135,6 +135,7 @@
 
                       extraSpecialArgs = {
                         inherit mcp-hub mcp-hub-nvim;
+                        hostname = "lenovo";
                       };
 
                       users.petara = {
@@ -213,6 +214,7 @@
 
                       extraSpecialArgs = {
                         inherit mcp-hub mcp-hub-nvim;
+                        hostName = "framework-mini";
                       };
 
                       users.petara = {
@@ -248,6 +250,7 @@
 
                       extraSpecialArgs = {
                         inherit mcp-hub mcp-hub-nvim;
+                        hostName = "framework";
                       };
 
                       users.petara = {

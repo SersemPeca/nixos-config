@@ -40,6 +40,7 @@
       nvim-autopairs.enable = true;
       neo-tree.enable = true;
       oil.enable = true;
+      flash.enable = true;
       treesitter = {
         enable = true;
 
@@ -324,6 +325,12 @@
         mode = "n";
         key = "<leader>/";
         action = ":ToggleTerm<CR>";
+      }
+
+      {
+        mode = "n";
+        key = "zk";
+        action = "<cmd>lua require('flash').jump()<CR>";
       }
 
       {
