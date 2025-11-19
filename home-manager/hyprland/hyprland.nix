@@ -28,7 +28,8 @@
         ];
 
         monitor = lib.mkIf (hostName == "gpd-pocket-4") [
-          "eDP-1, preferred, auto, 1, transform, 3"
+          # Scale the internal display on the GPD to make the whole desktop larger.
+          "eDP-1, preferred, auto, 2, transform, 3"
         ];
 
         bind = [
