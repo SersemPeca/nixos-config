@@ -41,6 +41,25 @@
       neo-tree.enable = true;
       oil.enable = true;
       flash.enable = true;
+      tiny-inline-diagnostic = {
+        enable = true;
+
+        settings = {
+          multilines = {
+            enabled = true;
+          };
+          options = {
+            use_icons_from_diagnostic = true;
+          };
+          preset = "classic";
+
+          virt_texts = {
+            priority = 2048;
+          };
+
+        };
+
+      };
       treesitter = {
         enable = true;
 
