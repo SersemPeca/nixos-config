@@ -1,4 +1,4 @@
-{ lib }:
+{ lib, nixvim, ... }:
 
 {
 
@@ -33,7 +33,7 @@
           type = "group";
           val = [
             {
-              on_press = lib.nixvim.mkRaw "function() vim.cmd[[ene]] end";
+              on_press = nixvim.lib.nixvim.mkRaw "function() vim.cmd[[ene]] end";
               opts = {
                 shortcut = "n";
               };
@@ -41,7 +41,7 @@
               val = "  New file";
             }
             {
-              on_press = lib.nixvim.mkRaw "function() vim.cmd[[qa]] end";
+              on_press = nixvim.lib.nixvim.mkRaw "function() vim.cmd[[qa]] end";
               opts = {
                 shortcut = "q";
               };

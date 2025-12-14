@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  nixvim,
   ...
 }:
 
@@ -11,6 +12,7 @@
       inherit
         pkgs
         lib
+        nixvim
         ;
     })
     # ./nvim/nvim.nix
