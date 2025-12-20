@@ -96,6 +96,7 @@
 
               extraSpecialArgs = {
                 inherit nixvim mcp-hub mcp-hub-nvim;
+                hostName = "default";
               };
 
               modules = [
@@ -129,15 +130,15 @@
                 (
                   { ... }:
                   {
-                      home-manager = {
-                        useGlobalPkgs = true;
-                        useUserPackages = true;
-                        backupFileExtension = "backup";
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      backupFileExtension = "backup";
 
-                        extraSpecialArgs = {
-                          inherit nixvim mcp-hub mcp-hub-nvim;
-                          hostname = "lenovo";
-                        };
+                      extraSpecialArgs = {
+                        inherit nixvim mcp-hub mcp-hub-nvim;
+                        hostname = "lenovo";
+                      };
 
                       users.petara = {
                         imports = [
@@ -169,15 +170,15 @@
                 (
                   { ... }:
                   {
-                      home-manager = {
-                        useGlobalPkgs = true;
-                        useUserPackages = true;
-                        backupFileExtension = "backup";
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      backupFileExtension = "backup";
 
-                        extraSpecialArgs = {
-                          inherit nixvim mcp-hub mcp-hub-nvim;
-                          hostName = "gpd-pocket-4";
-                        };
+                      extraSpecialArgs = {
+                        inherit nixvim mcp-hub mcp-hub-nvim;
+                        hostName = "gpd-pocket-4";
+                      };
 
                       users.petara = {
                         imports = [
@@ -208,16 +209,16 @@
                 (
                   { ... }:
                   {
-                      home-manager = {
-                        useGlobalPkgs = true;
-                        useUserPackages = true;
-                        backupFileExtension = "backup";
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      backupFileExtension = "backup";
 
-                        extraSpecialArgs = {
-                          # inherit mcp-hub mcp-hub-nvim;
-                          inherit nixvim;
-                          hostName = "framework-mini";
-                        };
+                      extraSpecialArgs = {
+                        # inherit mcp-hub mcp-hub-nvim;
+                        inherit nixvim;
+                        hostName = "framework-mini";
+                      };
 
                       users.petara = {
                         imports = [
@@ -245,15 +246,15 @@
                 (
                   { ... }:
                   {
-                      home-manager = {
-                        useGlobalPkgs = true;
-                        useUserPackages = true;
-                        backupFileExtension = "backup";
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      backupFileExtension = "backup";
 
-                        extraSpecialArgs = {
-                          inherit nixvim mcp-hub mcp-hub-nvim;
-                          hostName = "framework";
-                        };
+                      extraSpecialArgs = {
+                        inherit nixvim mcp-hub mcp-hub-nvim;
+                        hostName = "framework";
+                      };
 
                       users.petara = {
                         imports = [
@@ -273,8 +274,8 @@
           };
 
           homeConfigurations = {
-            petara = mkHM system "petara";
-            # pesho = mkHM system "pesho";
+            # petara = mkHM system "petara";
+            pesho = mkHM system "pesho";
           };
         };
     };

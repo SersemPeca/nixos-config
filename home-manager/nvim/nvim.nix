@@ -169,6 +169,7 @@
         lua_ls.enable = true;
         ts_ls.enable = true;
         pyright.enable = true;
+        csharp_ls.enable = true;
       };
     };
 
