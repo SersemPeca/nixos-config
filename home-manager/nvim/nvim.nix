@@ -144,17 +144,15 @@
 
       pkgs.vimPlugins.knap
 
-      # (pkgs.vimUtils.buildVimPlugin {
-      #   name = "knap";
-      #   src = pkgs.fetchFromGitHub {
-      #     owner = "frabjous";
-      #     repo = "knap";
-      #     rev = "7db44d0bb760120142cc1e8f43e44976de59c2f6";
-      #     hash = "sha256-BX/y1rEcDqj96rDssWwrMbj93SVIfFCW3tFgsFI1d4M=";
-      #   };
-      # })
-
-      # mcp-hub-nvim
+      (pkgs.vimUtils.buildVimPlugin {
+        name = "cinnamon.nvim";
+        src = pkgs.fetchFromGitHub {
+          owner = "declancm";
+          repo = "cinnamon.nvim";
+          rev = "450cb3247765fed7871b41ef4ce5fa492d834215";
+          hash = "sha256-kccQ4iFMSQ8kvE7hYz90hBrsDLo7VohFj/6lEZZiAO8=";
+        };
+      })
 
     ];
 
@@ -176,15 +174,15 @@
     keymaps = [
       {
         mode = "n";
-        key = "<leader>tc";
-        action = ":tabclose<CR>";
+        key = "<leader>bd";
+        action = ":bdelete<CR>";
         options.silent = true;
       }
 
       {
         mode = "n";
-        key = "<leader>tn";
-        action = ":tabnew<CR>";
+        key = "<leader>bn";
+        action = ":enew<CR>";
         options.silent = true;
       }
 

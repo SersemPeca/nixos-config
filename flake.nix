@@ -137,7 +137,7 @@
 
                       extraSpecialArgs = {
                         inherit nixvim mcp-hub mcp-hub-nvim;
-                        hostname = "lenovo";
+                        hostName = "lenovo";
                       };
 
                       users.petara = {
