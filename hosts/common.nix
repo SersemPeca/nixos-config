@@ -34,13 +34,15 @@
 
   services.xserver = {
     enable = true;
-    layout = "us";
     xkb = {
       layout = "us";
       variant = "";
     };
-    displayManager.sddm.enable = true;
-    displayManager.sddm.wayland.enable = true;
+  };
+
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
   };
 
   services.upower.enable = true;

@@ -203,57 +203,49 @@
       {
         mode = "n";
         key = "gd";
-        action = "vim.lsp.buf.definition";
-        lua = true;
+        action.__raw = "vim.lsp.buf.definition";
       }
 
       {
         mode = "n";
         key = "gr";
-        action = "vim.lsp.buf.references";
-        lua = true;
+        action.__raw = "vim.lsp.buf.references";
       }
 
       {
         mode = "n";
         key = "gi";
-        action = "vim.lsp.buf.implementation";
-        lua = true;
+        action.__raw = "vim.lsp.buf.implementation";
       }
 
       {
         mode = "n";
         key = "K";
-        action = "vim.lsp.buf.hover";
-        lua = true;
+        action.__raw = "vim.lsp.buf.hover";
       }
 
       {
         mode = "n";
         key = "<leader>la";
-        action = "vim.lsp.buf.code_action";
-        lua = true;
+        action.__raw = "vim.lsp.buf.code_action";
       }
 
       {
         mode = "n";
         key = "<leader>lr";
-        action = "vim.lsp.buf.rename";
-        lua = true;
+        action.__raw = "vim.lsp.buf.rename";
       }
 
       {
         mode = "n";
         key = "[d";
-        action = "vim.diagnostic.goto_prev";
-        lua = true;
+        action.__raw = "vim.diagnostic.goto_prev";
       }
 
       {
         mode = "n";
         key = "]d";
-        action = "vim.diagnostic.goto_next";
-        lua = true;
+        action.__raw = "vim.diagnostic.goto_next";
       }
 
       {

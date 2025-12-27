@@ -76,6 +76,19 @@
 
     ssh = {
       enable = true;
+      enableDefaultConfig = false;
+      matchBlocks."*" = {
+        forwardAgent = false;
+        addKeysToAgent = "no";
+        compression = false;
+        serverAliveInterval = 0;
+        serverAliveCountMax = 3;
+        hashKnownHosts = false;
+        userKnownHostsFile = "~/.ssh/known_hosts";
+        controlMaster = "no";
+        controlPath = "~/.ssh/master-%r@%n:%p";
+        controlPersist = "no";
+      };
     };
 
     firefox = {
@@ -84,8 +97,10 @@
 
     git = {
       enable = true;
-      userName = "SersemPeca";
-      userEmail = "p.atanasov21@abv.bg";
+      settings.user = {
+        name = "SersemPeca";
+        email = "p.atanasov21@abv.bg";
+      };
     };
 
     btop = {

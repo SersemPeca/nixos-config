@@ -35,7 +35,6 @@
 
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware";
-      inputs.nixpkgs.follows = "nixpkgs";
       flake = true;
     };
 
@@ -101,7 +100,7 @@
 
               modules = [
                 ./home-manager/home.nix
-                nixvim.homeManagerModules.nixvim
+                nixvim.homeModules.nixvim
 
                 {
                   home.username = user;
@@ -142,7 +141,7 @@
 
                       users.petara = {
                         imports = [
-                          nixvim.homeManagerModules.nixvim
+                          nixvim.homeModules.nixvim
                           ./home-manager/home.nix
                         ];
                       };
@@ -182,7 +181,7 @@
 
                       users.petara = {
                         imports = [
-                          nixvim.homeManagerModules.nixvim
+                          nixvim.homeModules.nixvim
                           ./home-manager/home.nix
                         ];
                       };
@@ -222,7 +221,7 @@
 
                       users.petara = {
                         imports = [
-                          nixvim.homeManagerModules.nixvim
+                          nixvim.homeModules.nixvim
                           ./home-manager/home.nix
                         ];
                       };
@@ -258,7 +257,7 @@
 
                       users.petara = {
                         imports = [
-                          nixvim.homeManagerModules.nixvim
+                          nixvim.homeModules.nixvim
                           ./home-manager/home.nix
                         ];
                       };
