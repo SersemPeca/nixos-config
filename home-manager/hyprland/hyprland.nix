@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  hostName,
+  hostName ? "default",
   ...
 }:
 {

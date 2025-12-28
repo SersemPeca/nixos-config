@@ -123,31 +123,9 @@
 
                 ./hosts/lenovo/configuration.nix
                 ./hosts/lenovo/hardware-configuration.nix
+                ./hosts/lenovo/home-manager.nix
 
                 nixos-hardware.nixosModules.lenovo-thinkpad-x1-12th-gen
-
-                (
-                  { ... }:
-                  {
-                    home-manager = {
-                      useGlobalPkgs = true;
-                      useUserPackages = true;
-                      backupFileExtension = "backup";
-
-                      extraSpecialArgs = {
-                        inherit nixvim mcp-hub mcp-hub-nvim;
-                        hostName = "lenovo";
-                      };
-
-                      users.petara = {
-                        imports = [
-                          nixvim.homeModules.nixvim
-                          ./home-manager/home.nix
-                        ];
-                      };
-                    };
-                  }
-                )
               ];
 
               specialArgs = {
@@ -163,31 +141,9 @@
 
                 ./hosts/gpd/configuration.nix
                 ./hosts/gpd/hardware-configuration.nix
+                ./hosts/gpd/home-manager.nix
 
                 nixos-hardware.nixosModules.gpd-pocket-4
-
-                (
-                  { ... }:
-                  {
-                    home-manager = {
-                      useGlobalPkgs = true;
-                      useUserPackages = true;
-                      backupFileExtension = "backup";
-
-                      extraSpecialArgs = {
-                        inherit nixvim mcp-hub mcp-hub-nvim;
-                        hostName = "gpd-pocket-4";
-                      };
-
-                      users.petara = {
-                        imports = [
-                          nixvim.homeModules.nixvim
-                          ./home-manager/home.nix
-                        ];
-                      };
-                    };
-                  }
-                )
               ];
 
               specialArgs = {
@@ -202,32 +158,9 @@
                 home-manager.nixosModules.home-manager
                 ./hosts/framework-mini/configuration.nix
                 ./hosts/framework-mini/hardware-configuration.nix
+                ./hosts/framework-mini/home-manager.nix
 
                 nixos-hardware.nixosModules.framework-amd-ai-300-series
-
-                (
-                  { ... }:
-                  {
-                    home-manager = {
-                      useGlobalPkgs = true;
-                      useUserPackages = true;
-                      backupFileExtension = "backup";
-
-                      extraSpecialArgs = {
-                        # inherit mcp-hub mcp-hub-nvim;
-                        inherit nixvim;
-                        hostName = "framework-mini";
-                      };
-
-                      users.petara = {
-                        imports = [
-                          nixvim.homeModules.nixvim
-                          ./home-manager/home.nix
-                        ];
-                      };
-                    };
-                  }
-                )
               ];
 
               specialArgs = {
@@ -241,29 +174,8 @@
                 home-manager.nixosModules.home-manager
                 ./hosts/framework/configuration.nix
                 ./hosts/famework/hardware-configuration.nix
+                ./hosts/framework/home-manager.nix
 
-                (
-                  { ... }:
-                  {
-                    home-manager = {
-                      useGlobalPkgs = true;
-                      useUserPackages = true;
-                      backupFileExtension = "backup";
-
-                      extraSpecialArgs = {
-                        inherit nixvim mcp-hub mcp-hub-nvim;
-                        hostName = "framework";
-                      };
-
-                      users.petara = {
-                        imports = [
-                          nixvim.homeModules.nixvim
-                          ./home-manager/home.nix
-                        ];
-                      };
-                    };
-                  }
-                )
               ];
 
               specialArgs = {
@@ -275,6 +187,26 @@
           homeConfigurations = {
             # petara = mkHM system "petara";
             pesho = mkHM system "pesho";
+            thinkpad-e15 = hmLib.homeManagerConfiguration {
+              inherit pkgs;
+
+              extraSpecialArgs = {
+                inherit nixvim mcp-hub mcp-hub-nvim;
+                hostName = "thinkpad-e15";
+              };
+
+              modules = [
+                ./home-manager/home.nix
+                ./hosts/home-common.nix
+                ./hosts/thinkpad-e15/home-manager.nix
+                nixvim.homeModules.nixvim
+
+                {
+                  home.username = "petara";
+                  home.homeDirectory = "/home/petara";
+                }
+              ];
+            };
           };
         };
     };
