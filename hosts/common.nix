@@ -14,6 +14,8 @@
     ];
   };
 
+  # nixpkgs.config.allowUnfree = true;
+
   # Hardware.
   hardware.logitech.wireless.enable = true;
   hardware.logitech.wireless.enableGraphical = true;

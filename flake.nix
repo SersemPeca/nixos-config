@@ -173,7 +173,7 @@
               modules = [
                 home-manager.nixosModules.home-manager
                 ./hosts/framework/configuration.nix
-                ./hosts/famework/hardware-configuration.nix
+                ./hosts/framework/hardware-configuration.nix
                 ./hosts/framework/home-manager.nix
 
               ];

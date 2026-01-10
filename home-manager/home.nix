@@ -29,6 +29,7 @@
     stateVersion = "24.11";
     sessionVariables = lib.mkForce {
       EDITOR = "nvim";
+      NIXOS_OZONE_WL = "1";
     };
 
     shell.enableFishIntegration = true;
@@ -43,6 +44,15 @@
       signal-desktop
 
       brightnessctl
+
+      xfce.thunar
+      xfce.thunar-archive-plugin
+      xfce.thunar-volman
+      xfce.tumbler
+      xfce.exo
+
+      python313Packages.jupyterlab
+      python3Packages.ipykernel
     ];
 
   };
@@ -91,6 +101,10 @@
     };
 
     zed-editor = {
+      enable = true;
+    };
+
+    vscode = {
       enable = true;
     };
 
