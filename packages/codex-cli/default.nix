@@ -20,7 +20,6 @@
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "codex";
   version = "0.104.0";
-
   src = fetchFromGitHub {
     owner = "openai";
     repo = "codex";
