@@ -151,6 +151,21 @@
               };
             };
 
+            nixos-desktop = nixpkgs.lib.nixosSystem {
+              inherit system pkgs;
+
+              modules = [
+                home-manager.nixosModules.home-manager
+                ./hosts/desktop/configuration.nix
+                ./hosts/desktop/hardware-configuration.nix
+                ./hosts/desktop/home-manager.nix
+              ];
+
+              specialArgs = {
+                inherit nixvim hyprland;
+              };
+            };
+
             nixos-framework-mini = nixpkgs.lib.nixosSystem {
               inherit system pkgs;
 
