@@ -43,6 +43,8 @@
       neo-tree.enable = true;
       oil.enable = true;
       flash.enable = true;
+      markdown-preview.enable = true;
+      render-markdown.enable = true;
       tiny-inline-diagnostic = {
         enable = true;
 
@@ -151,6 +153,16 @@
           repo = "cinnamon.nvim";
           rev = "450cb3247765fed7871b41ef4ce5fa492d834215";
           hash = "sha256-kccQ4iFMSQ8kvE7hYz90hBrsDLo7VohFj/6lEZZiAO8=";
+        };
+      })
+
+      (pkgs.vimUtils.buildVimPlugin {
+        name = "live-preview.nvim";
+        src = pkgs.fetchFromGitHub {
+          owner = "brianhuster";
+          repo = "live-preview.nvim";
+          rev = "5f517e80c1ca734a2bd6ace2115b36c51464f7e9";
+          hash = "sha256-dDpJn0Wr5f7gWZazrvzEUMa/MsDAogK77Dp6M8aMABI=";
         };
       })
 

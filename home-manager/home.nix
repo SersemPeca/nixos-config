@@ -34,26 +34,42 @@
 
     shell.enableFishIntegration = true;
 
-    packages = with pkgs; [
-      # home-manager
+    pointerCursor = {
+      name = "Adwaita";
+      package = pkgs.adwaita-icon-theme;
+      size = 24;
+      gtk.enable = true;
+      x11.enable = true;
+    };
 
-      nerd-fonts.fira-code
+    packages =
+      with pkgs;
+      [
+        # home-manager
 
-      (callPackage ../packages/codex-cli/default.nix { })
+        (callPackage ../packages/codex-cli/default.nix { })
 
-      signal-desktop
+        signal-desktop
 
-      brightnessctl
+        kdePackages.okular
 
-      xfce.thunar
-      xfce.thunar-archive-plugin
-      xfce.thunar-volman
-      xfce.tumbler
-      xfce.exo
+        brightnessctl
 
-      python313Packages.jupyterlab
-      python3Packages.ipykernel
-    ];
+        xfce.thunar
+        xfce.thunar-archive-plugin
+        xfce.thunar-volman
+        xfce.tumbler
+        xfce4-exo
+
+        python313Packages.jupyterlab
+        python3Packages.ipykernel
+
+        zip
+        unzip
+
+        tig
+      ]
+      ++ (lib.filter lib.isDerivation (lib.attrValues pkgs."nerd-fonts"));
 
   };
 
@@ -100,11 +116,15 @@
       enable = true;
     };
 
-    zed-editor = {
+    vscode = {
       enable = true;
     };
 
-    vscode = {
+    hyprlock = {
+      enable = true;
+    };
+
+    zellij = {
       enable = true;
     };
 

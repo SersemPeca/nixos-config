@@ -41,6 +41,8 @@ in
             "custom/divider"
             "backlight"
             "custom/divider"
+            "hyprland/language"
+            "custom/divider"
             "pulseaudio"
             "custom/divider"
             "battery"
@@ -89,6 +91,10 @@ in
           network = {
             format = "󰖩 {essid}";
             format-disconnected = "󰖪 disconnected";
+          };
+          "hyprland/language" = {
+            format = "{}";
+            tooltip = false;
           };
           clock = {
             format = " {:%I:%M %p   %m/%d} ";

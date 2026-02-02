@@ -37,15 +37,19 @@
   services.xserver = {
     enable = true;
     xkb = {
-      layout = "us";
-      variant = "";
+      layout = "us,bg";
+      variant = ",phonetic";
+      options = "grp:alt_space_toggle";
     };
+
   };
 
-  services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
-  };
+  services.displayManager.gdm.enable = true;
+
+  # services.displayManager.sddm = {
+  #   enable = true;
+  #   wayland.enable = true;
+  # };
 
   services.upower.enable = true;
 

@@ -22,6 +22,9 @@
           input = {
             repeat_delay = 200;
             repeat_rate = 45;
+            kb_layout = "us,bg";
+            kb_variant = ",phonetic";
+            kb_options = "grp:alt_space_toggle";
           };
 
           exec-once = [
@@ -32,6 +35,8 @@
             "$mod, RETURN, exec, wezterm"
             "$mod, SPACE, exec, wofi --show drun"
             "$mod, Q, killactive"
+
+            "SUPER, L, exec, hyprlock"
 
             # Workspaces
             "$mod, 1, workspace, 1"
@@ -80,6 +85,23 @@
           ];
         })
       ];
+    };
+
+    services.hypridle = lib.mkIf config.custom.hyprland.enable {
+      enable = true;
+      settings = {
+        general = {
+          lock_cmd = "hyprlock";
+          before_sleep_cmd = "hyprlock";
+          after_sleep_cmd = "hyprctl dispatch dpms on";
+        };
+        listener = [
+          {
+            timeout = 1800;
+            on-timeout = "hyprlock";
+          }
+        ];
+      };
     };
   };
 }

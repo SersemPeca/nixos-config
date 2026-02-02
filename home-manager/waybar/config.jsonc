@@ -25,7 +25,6 @@
     "custom/divider",
     "backlight",
     "custom/divider",
-    // "custom/language",
     "pulseaudio",
     "custom/divider",
     "battery",
@@ -79,12 +78,6 @@
     "interval": 300,
     "format": " {}"
   },
-  // "custom/language": {
-  //     "exec": "cat /tmp/kb_layout",
-  //     "interval": 3,
-  //     "format": " {}",
-  //     "tooltip": false
-  // },
   "backlight": {
     "format": "󰖨 {}",
     "device": "acpi_video0"
@@ -105,7 +98,7 @@
     "format": "󰖩 {essid}",
     "format-disconnected": "󰖪 disconnected"
   },
-
+  "clock": {
     "format": " {:%I:%M %p   %m/%d} ",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
   },
