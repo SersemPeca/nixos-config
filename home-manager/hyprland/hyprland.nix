@@ -37,6 +37,7 @@
             "$mod, Q, killactive"
 
             "SUPER, L, exec, hyprlock"
+            "SUPER, S, exec, bash -lc 'grim -g \"$(slurp)\" - | swappy -f -'"
 
             # Workspaces
             "$mod, 1, workspace, 1"

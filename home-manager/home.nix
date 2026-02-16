@@ -50,15 +50,20 @@
         (callPackage ../packages/codex-cli/default.nix { })
 
         signal-desktop
+        viber
 
         kdePackages.okular
 
         brightnessctl
+        grim
+        slurp
+        swappy
+        wl-clipboard
 
-        xfce.thunar
-        xfce.thunar-archive-plugin
-        xfce.thunar-volman
-        xfce.tumbler
+        thunar
+        thunar-archive-plugin
+        thunar-volman
+        tumbler
         xfce4-exo
 
         python313Packages.jupyterlab
@@ -68,6 +73,8 @@
         unzip
 
         tig
+
+        ripgrep
       ]
       ++ (lib.filter lib.isDerivation (lib.attrValues pkgs."nerd-fonts"));
 
