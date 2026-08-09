@@ -67,6 +67,7 @@
         unzip
 
         tig
+        lazygit
 
         ripgrep
 
