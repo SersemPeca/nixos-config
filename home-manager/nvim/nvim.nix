@@ -2,6 +2,7 @@
   lib,
   pkgs,
   nixvim,
+  inputs,
   ...
 }:
 {
@@ -13,6 +14,11 @@
 
   programs.nixvim = {
     enable = true;
+
+    nixpkgs = {
+      source = inputs.nixpkgs;
+      config.allowUnfree = true;
+    };
 
     defaultEditor = lib.mkForce true;
     viAlias = true;

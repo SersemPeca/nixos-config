@@ -12,6 +12,12 @@
       "nix-command"
       "flakes"
     ];
+    substituters = [
+      "https://hyprland.cachix.org"
+    ];
+    trusted-public-keys = [
+      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+    ];
   };
 
   # nixpkgs.config.allowUnfree = true;
@@ -44,12 +50,32 @@
 
   };
 
-  services.displayManager.gdm.enable = true;
+  # Display manager configuration
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --remember-session --sessions ${hyprland.packages."${pkgs.stdenv.hostPlatform.system}".hyprland}/share/wayland-sessions";
+        user = "greeter";
+      };
+    };
+  };
 
-  # services.displayManager.sddm = {
-  #   enable = true;
-  #   wayland.enable = true;
-  # };
+  # TTY configuration for greetd (fixes bootlog spam)
+  systemd.services.greetd.serviceConfig = {
+    Type = "idle";
+    StandardInput = "tty";
+    StandardOutput = "tty";
+    StandardError = "journal";
+    TTYReset = true;
+    TTYVHangup = true;
+    TTYVTDisallocate = true;
+  };
+
+  # Make sure greetd sessions directory exists
+  systemd.tmpfiles.rules = [
+    "d '/var/cache/tuigreet' - greeter greeter - -"
+  ];
 
   services.upower.enable = true;
 
@@ -78,8 +104,14 @@
 
   programs.hyprland = {
     enable = true;
-    package = hyprland.packages."${pkgs.system}".hyprland;
-    # withUWSM = true;
+    package = hyprland.packages."${pkgs.stdenv.hostPlatform.system}".hyprland;
+    portalPackage = hyprland.packages."${pkgs.stdenv.hostPlatform.system}".xdg-desktop-portal-hyprland;
+  };
+
+  # Ensure XDG portals are enabled
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   };
 
 }

@@ -1,35 +1,65 @@
 {
   lib,
   stdenv,
+  callPackage,
   rustPlatform,
   fetchFromGitHub,
   installShellFiles,
+  bubblewrap,
   clang,
   cmake,
   gitMinimal,
+  libcap,
   libclang,
+  librusty_v8 ? callPackage ./librusty_v8.nix {
+    inherit (callPackage ./fetchers.nix { }) fetchLibrustyV8;
+  },
+  lld,
   makeBinaryWrapper,
   nix-update-script,
   pkg-config,
   openssl,
   ripgrep,
-  libcap,
   versionCheckHook,
   installShellCompletions ? stdenv.buildPlatform.canExecute stdenv.hostPlatform,
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "codex";
-  version = "0.104.0";
+  version = "0.146.0";
+
   src = fetchFromGitHub {
     owner = "openai";
     repo = "codex";
     tag = "rust-v${finalAttrs.version}";
-    hash = "sha256-spWb/msjl9am7E4UkZfEoH0diFbvAfydJKJQM1N1aoI=";
+    hash = "sha256-/kTIOX/klxm1nq2bJsBqS8f1jZZp2ilaTeULQFPJgDk=";
   };
 
   sourceRoot = "${finalAttrs.src.name}/codex-rs";
 
-  cargoHash = "sha256-8XNOqkr03+tI+gqJRR65iWYQ0zsqAiDl2V5bwPoWAcA=";
+  cargoHash = "sha256-N9jbH/cgAyu2QxneSnpkdaF0MgV3ZtDmN9q6rr9u+hE=";
+
+  __structuredAttrs = true;
+
+  # Match upstream's release build for the codex binary, plus its
+  # codex-code-mode-host runtime companion for out-of-process V8 execution.
+  cargoBuildFlags = [
+    "--package"
+    "codex-cli"
+    "--package"
+    "codex-code-mode-host"
+  ];
+  cargoCheckFlags = [
+    "--package"
+    "codex-cli"
+    "--package"
+    "codex-code-mode-host"
+  ];
+
+  postPatch = ''
+    substituteInPlace Cargo.toml \
+      --replace-fail 'lto = "thin"' "" \
+      --replace-fail 'codegen-units = 4' ""
+  '';
 
   nativeBuildInputs = [
     clang
@@ -43,6 +73,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
   buildInputs = [
     libclang
     openssl
+  ]
+  ++ lib.optionals stdenv.hostPlatform.isLinux [
     libcap
   ];
 
@@ -60,6 +92,12 @@ rustPlatform.buildRustPackage (finalAttrs: {
         "-Wno-error=character-conversion"
       ]
     );
+    RUSTY_V8_ARCHIVE = librusty_v8;
+  }
+  // lib.optionalAttrs stdenv.hostPlatform.isDarwin {
+    # Link with lld on Darwin. nixpkgs' classic open-source ld64 fails to insert
+    # ARM64 branch thunks for this binary, producing `b(l) ARM64 branch out of range`.
+    NIX_CFLAGS_LINK = "-fuse-ld=${lib.getExe' lld "ld64.lld"}";
   };
 
   # NOTE: part of the test suite requires access to networking, local shells,
@@ -78,7 +116,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
   '';
 
   postFixup = ''
-    wrapProgram $out/bin/codex --prefix PATH : ${lib.makeBinPath [ ripgrep ]}
+    wrapProgram $out/bin/codex --prefix PATH : ${
+      lib.makeBinPath ([ ripgrep ] ++ lib.optionals stdenv.hostPlatform.isLinux [ bubblewrap ])
+    }
   '';
 
   doInstallCheck = true;
@@ -87,6 +127,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   passthru = {
     updateScript = nix-update-script {
       extraArgs = [
+        "--use-github-releases"
         "--version-regex"
         "^rust-v(\\d+\\.\\d+\\.\\d+)$"
       ];
@@ -100,8 +141,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
     license = lib.licenses.asl20;
     mainProgram = "codex";
     maintainers = with lib.maintainers; [
-      malo
       delafthi
+      jeafleohj
+      malo
     ];
     platforms = lib.platforms.unix;
   };

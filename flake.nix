@@ -17,209 +17,160 @@
     };
 
     hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
     };
 
     mcp-hub = {
       url = "github:ravitemer/mcp-hub";
       inputs.nixpkgs.follows = "nixpkgs";
-      flake = true;
     };
 
     mcp-hub-nvim = {
       url = "github:ravitemer/mcphub.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
-      flake = true;
     };
 
-    nixos-hardware = {
-      url = "github:NixOS/nixos-hardware";
-      flake = true;
-    };
-
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
   };
 
   outputs =
     inputs@{
+      self,
       nixpkgs,
       flake-parts,
-      home-manager,
-      nixvim,
-      hyprland,
-      mcp-hub,
-      mcp-hub-nvim,
-      nixos-hardware,
       ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-
       systems = [ "x86_64-linux" ];
 
       perSystem =
-        { system, pkgs, ... }:
+        {
+          system,
+          pkgs,
+          ...
+        }:
         {
           _module.args.pkgs = import nixpkgs {
             inherit system;
-            config.allowUnfree = true;
+            overlays = [
+              inputs.nixvim.overlays.default
+              (final: prev: {
+                codex = prev.callPackage ./packages/codex-cli/default.nix { };
+              })
+            ];
+            config = {
+              allowUnfree = true;
+              allowUnfreePredicate = _: true;
+            };
           };
+
+          packages.codex = pkgs.codex;
         };
 
       flake =
         let
-          mkPkgs =
-            system: overlays:
-            import nixpkgs {
-              inherit system overlays;
-              config.allowUnfree = true;
+          inherit (inputs) home-manager nixvim hyprland mcp-hub mcp-hub-nvim nixos-hardware;
+
+          # Common module for all NixOS configurations
+          commonNixosModule = {
+            nixpkgs.overlays = [
+              nixvim.overlays.default
+              (final: prev: {
+                codex = prev.callPackage ./packages/codex-cli/default.nix { };
+              })
+            ];
+            nixpkgs.config = {
+              allowUnfree = true;
+              allowUnfreePredicate = _: true;
             };
-
-          hmLib = home-manager.lib;
-
-          mcp-hub-nvim = inputs.mcp-hub-nvim.packages."${system}".default;
-
-          system = "x86_64-linux";
-
-          pkgs = mkPkgs system [
-            nixvim.overlays.default
-            (self: super: {
-              codex = super.callPackage ./packages/codex-cli/default.nix { };
-            })
-          ];
-
-          mkHM =
-            system: user:
-            hmLib.homeManagerConfiguration {
-
-              inherit pkgs;
-
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
               extraSpecialArgs = {
-                inherit nixvim mcp-hub mcp-hub-nvim;
-                hostName = "default";
-              };
-
-              modules = [
-                ./home-manager/home.nix
-                nixvim.homeModules.nixvim
-
-                {
-                  home.username = user;
-                  home.homeDirectory = "/home/${user}";
-                }
-              ];
-            };
-
-        in
-        {
-
-          packages.${system}.codex = pkgs.codex;
-
-          nixosConfigurations = {
-            nixos-lenovo = nixpkgs.lib.nixosSystem {
-              inherit system pkgs;
-
-              modules = [
-                home-manager.nixosModules.home-manager
-
-                ./hosts/lenovo/configuration.nix
-                ./hosts/lenovo/hardware-configuration.nix
-                ./hosts/lenovo/home-manager.nix
-
-                nixos-hardware.nixosModules.lenovo-thinkpad-x1-12th-gen
-              ];
-
-              specialArgs = {
-                inherit nixvim hyprland;
-              };
-            };
-
-            nixos-gpd = nixpkgs.lib.nixosSystem {
-              inherit system pkgs;
-
-              modules = [
-                home-manager.nixosModules.home-manager
-
-                ./hosts/gpd/configuration.nix
-                ./hosts/gpd/hardware-configuration.nix
-                ./hosts/gpd/home-manager.nix
-
-                nixos-hardware.nixosModules.gpd-pocket-4
-              ];
-
-              specialArgs = {
-                inherit nixvim hyprland;
-              };
-            };
-
-            nixos-desktop = nixpkgs.lib.nixosSystem {
-              inherit system pkgs;
-
-              modules = [
-                home-manager.nixosModules.home-manager
-                ./hosts/desktop/configuration.nix
-                ./hosts/desktop/hardware-configuration.nix
-                ./hosts/desktop/home-manager.nix
-              ];
-
-              specialArgs = {
-                inherit nixvim hyprland;
-              };
-            };
-
-            nixos-framework-mini = nixpkgs.lib.nixosSystem {
-              inherit system pkgs;
-
-              modules = [
-                home-manager.nixosModules.home-manager
-                ./hosts/framework-mini/configuration.nix
-                ./hosts/framework-mini/hardware-configuration.nix
-                ./hosts/framework-mini/home-manager.nix
-
-                nixos-hardware.nixosModules.framework-amd-ai-300-series
-              ];
-
-              specialArgs = {
-                inherit nixvim hyprland;
-              };
-            };
-            nixos-framework = nixpkgs.lib.nixosSystem {
-              inherit system pkgs;
-
-              modules = [
-                home-manager.nixosModules.home-manager
-                ./hosts/framework/configuration.nix
-                ./hosts/framework/hardware-configuration.nix
-                ./hosts/framework/home-manager.nix
-
-              ];
-
-              specialArgs = {
-                inherit nixvim hyprland;
+                inherit inputs nixvim hyprland mcp-hub mcp-hub-nvim;
               };
             };
           };
 
-          homeConfigurations = {
-            # petara = mkHM system "petara";
-            pesho = mkHM system "pesho";
-            thinkpad-e15 = hmLib.homeManagerConfiguration {
-              inherit pkgs;
-
-              extraSpecialArgs = {
-                inherit nixvim mcp-hub mcp-hub-nvim;
-                hostName = "thinkpad-e15";
+          # Helper to create NixOS system configurations
+          mkNixosSystem =
+            {
+              hostPath,
+              hardwareModules ? [ ],
+            }:
+            nixpkgs.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                home-manager.nixosModules.home-manager
+                commonNixosModule
+                (hostPath + "/configuration.nix")
+                (hostPath + "/hardware-configuration.nix")
+                (hostPath + "/home-manager.nix")
+              ] ++ hardwareModules;
+              specialArgs = {
+                inherit inputs nixvim hyprland;
               };
+            };
 
+          # Helper to create home-manager configurations
+          mkHome =
+            {
+              username,
+              hostName ? "default",
+              extraModules ? [ ],
+            }:
+            home-manager.lib.homeManagerConfiguration {
+              pkgs = self.legacyPackages.x86_64-linux;
+              extraSpecialArgs = {
+                inherit inputs nixvim mcp-hub mcp-hub-nvim hostName;
+              };
               modules = [
                 ./home-manager/home.nix
+                nixvim.homeModules.nixvim
+                {
+                  home = {
+                    inherit username;
+                    homeDirectory = "/home/${username}";
+                  };
+                }
+              ] ++ extraModules;
+            };
+        in
+        {
+          nixosConfigurations = {
+            nixos-lenovo = mkNixosSystem {
+              hostPath = ./hosts/lenovo;
+              hardwareModules = [ nixos-hardware.nixosModules.lenovo-thinkpad-x1-12th-gen ];
+            };
+
+            nixos-gpd = mkNixosSystem {
+              hostPath = ./hosts/gpd;
+              hardwareModules = [ nixos-hardware.nixosModules.gpd-pocket-4 ];
+            };
+
+            nixos-desktop = mkNixosSystem {
+              hostPath = ./hosts/desktop;
+            };
+
+            nixos-framework-mini = mkNixosSystem {
+              hostPath = ./hosts/framework-mini;
+              hardwareModules = [ nixos-hardware.nixosModules.framework-amd-ai-300-series ];
+            };
+
+            nixos-framework = mkNixosSystem {
+              hostPath = ./hosts/framework;
+            };
+          };
+
+          homeConfigurations = {
+            pesho = mkHome { username = "pesho"; };
+
+            thinkpad-e15 = mkHome {
+              username = "petara";
+              hostName = "thinkpad-e15";
+              extraModules = [
                 ./hosts/home-common.nix
                 ./hosts/thinkpad-e15/home-manager.nix
-                nixvim.homeModules.nixvim
-
-                {
-                  home.username = "petara";
-                  home.homeDirectory = "/home/petara";
-                }
               ];
             };
           };
