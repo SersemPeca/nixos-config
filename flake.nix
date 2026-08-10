@@ -31,6 +31,11 @@
     };
 
     nixos-hardware.url = "github:NixOS/nixos-hardware";
+
+    pi-flake = {
+      url = "github:ChauDucToan/pi-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -57,6 +62,9 @@
               (final: prev: {
                 codex = prev.callPackage ./packages/codex-cli/default.nix { };
               })
+              (final: prev: {
+                pi = prev.callPackage ./packages/pi-coding-agent/default.nix { };
+              })
             ];
             config = {
               allowUnfree = true;
@@ -69,7 +77,14 @@
 
       flake =
         let
-          inherit (inputs) home-manager nixvim hyprland mcp-hub mcp-hub-nvim nixos-hardware;
+          inherit (inputs)
+            home-manager
+            nixvim
+            hyprland
+            mcp-hub
+            mcp-hub-nvim
+            nixos-hardware
+            ;
 
           # Common module for all NixOS configurations
           commonNixosModule = {
@@ -77,6 +92,9 @@
               nixvim.overlays.default
               (final: prev: {
                 codex = prev.callPackage ./packages/codex-cli/default.nix { };
+              })
+              (final: prev: {
+                pi = prev.callPackage ./packages/pi-coding-agent/default.nix { };
               })
             ];
             nixpkgs.config = {
@@ -87,7 +105,13 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               extraSpecialArgs = {
-                inherit inputs nixvim hyprland mcp-hub mcp-hub-nvim;
+                inherit
+                  inputs
+                  nixvim
+                  hyprland
+                  mcp-hub
+                  mcp-hub-nvim
+                  ;
               };
             };
           };
@@ -106,7 +130,8 @@
                 (hostPath + "/configuration.nix")
                 (hostPath + "/hardware-configuration.nix")
                 (hostPath + "/home-manager.nix")
-              ] ++ hardwareModules;
+              ]
+              ++ hardwareModules;
               specialArgs = {
                 inherit inputs nixvim hyprland;
               };
@@ -122,7 +147,13 @@
             home-manager.lib.homeManagerConfiguration {
               pkgs = self.legacyPackages.x86_64-linux;
               extraSpecialArgs = {
-                inherit inputs nixvim mcp-hub mcp-hub-nvim hostName;
+                inherit
+                  inputs
+                  nixvim
+                  mcp-hub
+                  mcp-hub-nvim
+                  hostName
+                  ;
               };
               modules = [
                 ./home-manager/home.nix
@@ -133,7 +164,8 @@
                     homeDirectory = "/home/${username}";
                   };
                 }
-              ] ++ extraModules;
+              ]
+              ++ extraModules;
             };
         in
         {

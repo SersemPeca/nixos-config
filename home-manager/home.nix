@@ -1,7 +1,7 @@
 {
   pkgs,
   lib,
-  nixvim,
+  inputs,
   ...
 }:
 
@@ -15,7 +15,12 @@
     ./dunst/dunst.nix
     ./fish/fish.nix
     ./zoxide
+    inputs.pi-flake.homeManagerModules.default
   ];
+
+  programs.pi-coding-agent = {
+    enable = true;
+  };
 
   home = {
 

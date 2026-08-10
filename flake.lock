@@ -150,6 +150,27 @@
         "type": "github"
       }
     },
+    "home-manager_2": {
+      "inputs": {
+        "nixpkgs": [
+          "pi-flake",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783436070,
+        "narHash": "sha256-F80z1JoiJgZyTT5D+3siLOVzqmCEphLR7t0Ym/I2CLI=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "f09af49406ffad37acb6538d3207189a1a1e0b7e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
     "hyprcursor": {
       "inputs": {
         "hyprlang": [
@@ -613,6 +634,27 @@
         "type": "github"
       }
     },
+    "pi-flake": {
+      "inputs": {
+        "home-manager": "home-manager_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786149934,
+        "narHash": "sha256-hyJ9R6io8PvxXcQnrp8GG00onn/PKiqtb7TImnrrTFU=",
+        "owner": "ChauDucToan",
+        "repo": "pi-flake",
+        "rev": "de9a1b5624f4a935d72797726889ffc97796f069",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ChauDucToan",
+        "repo": "pi-flake",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -644,7 +686,8 @@
         "mcp-hub-nvim": "mcp-hub-nvim",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_3",
-        "nixvim": "nixvim"
+        "nixvim": "nixvim",
+        "pi-flake": "pi-flake"
       }
     },
     "systems": {
