@@ -64,6 +64,15 @@
 
   services.xserver.videoDrivers = [ "amdgpu" ];
 
+  # Local Ollama server (ROCm-accelerated) used as an OpenAI-compatible
+  # backend for pi's "ollama" provider. Cloud-tier models (e.g.
+  # deepseek-v4-flash:cloud) still need a one-time `ollama signin` +
+  # `ollama pull deepseek-v4-flash:cloud` run manually after rebuild.
+  services.ollama = {
+    enable = true;
+    package = pkgs.ollama-rocm;
+  };
+
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 

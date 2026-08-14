@@ -20,6 +20,39 @@
 
   programs.pi-coding-agent = {
     enable = true;
+
+    # Anthropic/Claude is a built-in pi provider — no config needed here.
+    # Run `pi` then `/login` once (Claude Pro/Max OAuth) to authenticate;
+    # the token lands in ~/.pi/agent/auth.json, outside the Nix store.
+
+    # Local Ollama server (see hosts/desktop) exposed to pi as a custom
+    # OpenAI-compatible provider. Only reachable on hosts actually running
+    # `services.ollama` (currently just nixos-desktop); harmless elsewhere.
+    models = {
+      providers = {
+        ollama = {
+          baseUrl = "http://127.0.0.1:11434/v1";
+          api = "openai-completions";
+          apiKey = "ollama";
+          models = [
+            {
+              id = "deepseek-v4-flash:cloud";
+              name = "DeepSeek V4 Flash (Ollama cloud)";
+              reasoning = true;
+              input = [ "text" ];
+              contextWindow = 1000000;
+              maxTokens = 8192;
+              cost = {
+                input = 0;
+                output = 0;
+                cacheRead = 0;
+                cacheWrite = 0;
+              };
+            }
+          ];
+        };
+      };
+    };
   };
 
   home = {
